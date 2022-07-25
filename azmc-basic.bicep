@@ -11,15 +11,9 @@ param CpuCores int = 2
 param IsAutostopEnabled string = 'TRUE'
 
 var ServerShareName = 'server'
+var OverviewerShareName = 'overviewer'
 var ServerMountPath = '/data'
 var ServerType = 'SPIGOT'
-
-
-@description('Address prefix')
-param vnetAddressPrefix string = '10.0.0.0/16'
-
-@description('Subnet prefix')
-param subnetAddressPrefix string = '10.0.2.0/24'
 
 
 /*
@@ -42,70 +36,13 @@ resource serverShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021
   }
 }
 
-
-/*
- * NETWORKING
- */
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
-  name: Name
-  location: Location
+resource overviewerShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-09-01' = {
+  name: '${storage.name}/default/${OverviewerShareName}'
   properties: {
-    addressSpace: {
-      addressPrefixes: [
-        vnetAddressPrefix
-      ]
-    }
+    accessTier: 'Hot'
+    shareQuota: 256
   }
 }
-
-// resource firewallSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = {
-//   name: 'AzureFirewallSubnet'
-//   parent: virtualNetwork
-//   properties: {
-//     addressPrefix: '10.0.1.0/26'
-//   }
-// }
-
-resource workloadSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = {
-  name: 'Workload-SN'
-  parent: virtualNetwork
-  properties: {
-    addressPrefix: subnetAddressPrefix
-    delegations: [
-      {
-        name: 'DelegationService'
-        properties: {
-          serviceName: 'Microsoft.ContainerInstance/containerGroups'
-        }
-      }
-    ]
-  }
-}
-
-resource networkProfile 'Microsoft.Network/networkProfiles@2021-08-01' = {
-  name: 'server-np'
-  location: Location
-  properties: {
-    containerNetworkInterfaceConfigurations: [
-      {
-        name: 'server-nic'
-        properties: {
-          ipConfigurations: [
-            {
-              name: 'server-ip'
-              properties: {
-                subnet: {
-                  id: workloadSubnet.id
-                }
-              }
-            }
-          ]
-        }
-      }
-    ]
-  }
-}
-
 
 /*
  * COMPUTE
@@ -156,7 +93,37 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01'
           resources: {
             requests: {
               cpu: CpuCores
-              memoryInGB: MemorySize
+              memoryInGB: MemorySize + 1
+            }
+          }
+        }
+      }
+      {
+        name: 'overviewer'
+        properties: {
+          image: 'mide/minecraft-overviewer'
+          environmentVariables: [
+            {
+              name: 'MINECRAFT_VERSION'
+              value: toLower(MinecraftVersion)
+            }
+          ]
+          volumeMounts: [
+            {
+              name: 'server'
+              mountPath: '/home/minecraft/server'
+              readOnly: true
+            }
+            {
+              name: 'overviewer'
+              mountPath: '/home/minecraft/render'
+              readOnly: false
+            }
+          ]
+          resources: {
+            requests: {
+              cpu: 1
+              memoryInGB: 2
             }
           }
         }
@@ -172,27 +139,34 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01'
           storageAccountKey: storage.listKeys().keys[0].value
         }
       }
+      {
+        name: 'overviewer'
+        azureFile: {
+          readOnly: false
+          shareName: OverviewerShareName
+          storageAccountName: storage.name
+          storageAccountKey: storage.listKeys().keys[0].value
+        }
+      }
     ]
     restartPolicy: 'OnFailure'
     osType: 'Linux'
-    networkProfile: {
-      id: networkProfile.id
-    }
     diagnostics: {
       logAnalytics: {
         workspaceId: logAnalyticsWorkspace.properties.customerId
         workspaceKey: logAnalyticsWorkspace.listKeys().primarySharedKey
       }
     }
-    // ipAddress: {
-    //   type: 'Private'
-    //   ports: [
-    //     {
-    //       protocol: 'TCP'
-    //       port: 25565
-    //     }
-    //   ]
-    // }
+    ipAddress: {
+      type: 'Public'
+      dnsNameLabel: '$play{Name}'
+      ports: [
+        {
+          protocol: 'TCP'
+          port: 25565
+        }
+      ]
+    }
   }
 }
 
