@@ -8,17 +8,20 @@ public class DiscordBotWorker : IHostedService
     private readonly InteractionService _interactionService;
     private readonly ILogger<DiscordBotWorker> _logger;
     private readonly IServiceProvider _serviceProvider;
+    private readonly IConfiguration _config;
 
     public DiscordBotWorker(
         DiscordSocketClient client,
         InteractionService interactionService,
         ILogger<DiscordBotWorker> logger,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        IConfiguration config)
     {
         _client = client;
         _interactionService = interactionService;
         _logger = logger;
         _serviceProvider = serviceProvider;
+        _config = config;
 
         _client.Ready += RegisterCommands;
         _client.InteractionCreated += _client_InteractionCreated;
@@ -29,12 +32,12 @@ public class DiscordBotWorker : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Logging into Discord...");
-        await _client.LoginAsync(Discord.TokenType.Bot, "");
+        await _client.LoginAsync(Discord.TokenType.Bot, _config.GetValue<string>("Discord:Token"));
 
         _logger.LogInformation("Starting bot...");
         await _client.StartAsync();
 
-        _logger.LogInformation("Bot is ready for action!");
+        _logger.LogInformation("Bot is online");
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

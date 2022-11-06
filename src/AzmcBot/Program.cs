@@ -3,6 +3,8 @@ using Discord.WebSocket;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddJsonFile("appsettings.Local.json");
+
 // Add services to the container.
 
 builder.Services.AddControllers();
