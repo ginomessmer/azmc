@@ -1,5 +1,7 @@
-﻿using Discord.Interactions;
+﻿using AzmcBot.Options;
+using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.Extensions.Options;
 using System.Reflection;
 
 public class DiscordBotWorker : IHostedService
@@ -9,19 +11,22 @@ public class DiscordBotWorker : IHostedService
     private readonly ILogger<DiscordBotWorker> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly IConfiguration _config;
+    private readonly BotOptions _options;
 
     public DiscordBotWorker(
         DiscordSocketClient client,
         InteractionService interactionService,
         ILogger<DiscordBotWorker> logger,
         IServiceProvider serviceProvider,
-        IConfiguration config)
+        IConfiguration config,
+        IOptions<BotOptions> options)
     {
         _client = client;
         _interactionService = interactionService;
         _logger = logger;
         _serviceProvider = serviceProvider;
         _config = config;
+        _options = options.Value;
 
         _client.Ready += RegisterCommands;
         _client.InteractionCreated += _client_InteractionCreated;
@@ -32,7 +37,7 @@ public class DiscordBotWorker : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Logging into Discord...");
-        await _client.LoginAsync(Discord.TokenType.Bot, _config.GetValue<string>("Discord:Token"));
+        await _client.LoginAsync(Discord.TokenType.Bot, _options.DiscordToken);
 
         _logger.LogInformation("Starting bot...");
         await _client.StartAsync();
