@@ -1,40 +1,105 @@
 ﻿using AzmcBot.Options;
-using Azure.Identity;
+using Azure.ResourceManager.ContainerInstance;
+using Discord;
 using Discord.Interactions;
-using Microsoft.Azure.Management.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Extensions.Options;
-using Microsoft.Rest;
-using Microsoft.Rest.Azure;
-using Newtonsoft.Json.Linq;
 
 namespace AzmcBot.Modules
 {
     public class MinecraftServerModule : InteractionModuleBase<SocketInteractionContext>
     {
-        private readonly IAzure _azure;
+        private readonly ContainerGroupResource _container;
         private readonly BotOptions _options;
+        private readonly ILogger<MinecraftServerModule> _logger;
 
-        public MinecraftServerModule(IAzure azure, IOptions<BotOptions> options)
+        public MinecraftServerModule(ContainerGroupResource container, IOptions<BotOptions> options, ILogger<MinecraftServerModule> logger)
 	    {
-            _azure = azure;
+            _container = container;
             _options = options.Value;
+            _logger = logger;
 	    }
 
-        [SlashCommand("start", "Starts the Minecraft server")]
-        public async Task StartAsync()
+        [SlashCommand("status", "Provides status information of the Minecraft server")]
+        public async Task Status()
         {
-            await _azure.ContainerGroups.StartAsync(_options.ResourceGroupName, _options.ContainerGroupName);
-            await RespondAsync("The Minecraft server is now up and running!");
+            await DeferAsync();
+
+            var serverName = _container.Data.Name;
+
+            await ModifyOriginalResponseAsync(msg =>
+            {
+                msg.Embed = new EmbedBuilder()
+                    .WithColor(Color.Blue)
+                    .WithTitle(serverName)
+                    .WithFields(
+                        new EmbedFieldBuilder().WithName("Server Address").WithValue(_container.Data.IPAddress.Fqdn).WithIsInline(false),
+                        new EmbedFieldBuilder().WithName("Server State").WithValue(_container.Data.Containers[0].InstanceView.CurrentState.State).WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("CPU(s)").WithValue(_container.Data.Containers[0].Resources.Requests.Cpu).WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("RAM").WithValue($"{_container.Data.Containers[0].Resources.Requests.MemoryInGB} GB").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Server Location").WithValue(_container.Data.Location.DisplayName).WithIsInline(true)
+                     )
+                    .Build();
+            });
+        }
+
+        [SlashCommand("logs", "Shows the most recent Minecraft server logs")]
+        public async Task Logs(int tail = 5)
+        {
+            await DeferAsync();
+
+            try
+            {
+                var logResponse = await _container.GetContainerLogsAsync("server", tail, true);
+                await ModifyOriginalResponseAsync(msg => msg.Content = $"```\n{logResponse.Value.Content}\n```");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while getting logs");
+                await ModifyOriginalResponseAsync(msg => msg.Content = $"Could not retrieve logs.");
+                throw;
+            }
+        }
+
+        [SlashCommand("start", "Starts the Minecraft server")]
+        public async Task Start()
+        {
+            await DeferAsync();
+            try
+            {
+                await ModifyOriginalResponseAsync(m => m.Embed = new EmbedBuilder()
+                    .WithTitle("Server starting")
+                    .WithDescription("Please wait a short moment while we're getting things ready...")
+                    .WithColor(Color.Blue)
+                    .Build());
+
+                await _container.StartAsync(Azure.WaitUntil.Completed);
+
+                await ModifyOriginalResponseAsync(m => m.Embed = new EmbedBuilder()
+                    .WithTitle("Server up and running")
+                    .WithColor(Color.Green)
+                    .WithFooter($"Join {_container.Data.IPAddress.Fqdn}")
+                    .Build());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured while starting the Minecraft server");
+                await ModifyOriginalResponseAsync(m => m.Embed = new EmbedBuilder()
+                    .WithTitle("Server start failed")
+                    .WithColor(Color.Red)
+                    .WithFooter($"The server couldn't be started. Please check the bot logs for more details.")
+                    .Build());
+                throw;
+            }
         }
 
         [SlashCommand("stop", "Stops the Minecraft server")]
-        public async Task StopAsync()
+        public async Task Stop()
         {
-            var container = _azure.ContainerGroups.GetByResourceGroup(_options.ResourceGroupName, _options.ContainerGroupName);
-            await container.StopAsync();
-            await RespondAsync("The Minecraft server has stopped");
+            await _container.StopAsync();
+            await RespondAsync(embed: new EmbedBuilder()
+                    .WithTitle("Server stopped")
+                    .WithColor(Color.Orange)
+                    .Build());
         }
     }
 }

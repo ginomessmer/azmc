@@ -1,14 +1,15 @@
 using Azure.Identity;
 using Discord.Interactions;
 using Discord.WebSocket;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-using Microsoft.Azure.Management.ResourceManager.Fluent;
-using Microsoft.Rest;
 using AzmcBot.Options;
+using Microsoft.Extensions.Options;
+using Azure.ResourceManager;
+using Azure.Core;
+using Azure.ResourceManager.Resources;
+using Azure.ResourceManager.ContainerInstance;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddJsonFile("appsettings.Local.json");
 builder.Services.Configure<BotOptions>(builder.Configuration.GetSection("Bot"));
 
 // Add services to the container.
@@ -24,14 +25,35 @@ builder.Services.AddSingleton<DiscordSocketClient>();
 builder.Services.AddSingleton<InteractionService>(sp => new(sp.GetRequiredService<DiscordSocketClient>()));
 
 // Add Azure
-builder.Services.AddTransient(_ =>
-{
-    var credential = new DefaultAzureCredential();
-    var token = credential.GetToken(new Azure.Core.TokenRequestContext(new[] { "https://management.azure.com/.default" })).Token;
-    var tokenCredential = new TokenCredentials(token);
-    var azureCredentials = new AzureCredentials(tokenCredential, tokenCredential, null, AzureEnvironment.AzureGlobalCloud);
-    return Microsoft.Azure.Management.Fluent.Azure.Configure().Authenticate(azureCredentials).WithDefaultSubscription();
-});
+builder.Services
+    .AddSingleton(services =>
+    {
+        var options = services.GetRequiredService<IOptions<BotOptions>>().Value;
+        return new DefaultAzureCredentialOptions
+        {
+            TenantId = options.TenantId
+        };
+    })
+    .AddSingleton<TokenCredential, DefaultAzureCredential>(services => new DefaultAzureCredential(services.GetRequiredService<DefaultAzureCredentialOptions>()))
+    .AddSingleton<ArmClient>()
+    .AddSingleton(services =>
+    {
+        var options = services.GetRequiredService<IOptions<BotOptions>>().Value;
+        var client = services.GetRequiredService<ArmClient>();
+        return client.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{options.SubscriptionId}"));
+    })
+    .AddSingleton(services =>
+    {
+        var options = services.GetRequiredService<IOptions<BotOptions>>().Value;
+        var subscription = services.GetRequiredService<SubscriptionResource>();
+        return subscription.GetResourceGroup(options.ResourceGroupName).Value;
+    })
+    .AddTransient(services =>
+    {
+        var options = services.GetRequiredService<IOptions<BotOptions>>().Value;
+        var rg = services.GetRequiredService<ResourceGroupResource>();
+        return rg.GetContainerGroup(options.ContainerGroupName).Value;
+    });
 
 // Add hosted services
 builder.Services.AddHostedService<DiscordBotWorker>();
