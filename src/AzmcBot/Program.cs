@@ -1,7 +1,7 @@
 using Azure.Identity;
 using Discord.Interactions;
 using Discord.WebSocket;
-using AzmcBot.Options;
+using AzmcBot.Configuration;
 using Microsoft.Extensions.Options;
 using Azure.ResourceManager;
 using Azure.Core;
@@ -10,7 +10,7 @@ using Azure.ResourceManager.ContainerInstance;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<BotOptions>(builder.Configuration.GetSection("Bot"));
+builder.Services.Configure<BotConfiguration>(builder.Configuration.GetSection("Bot"));
 
 // Add services to the container.
 
@@ -28,7 +28,7 @@ builder.Services.AddSingleton<InteractionService>(sp => new(sp.GetRequiredServic
 builder.Services
     .AddSingleton(services =>
     {
-        var options = services.GetRequiredService<IOptions<BotOptions>>().Value;
+        var options = services.GetRequiredService<IOptions<BotConfiguration>>().Value;
         return new DefaultAzureCredentialOptions
         {
             TenantId = options.TenantId
@@ -38,19 +38,19 @@ builder.Services
     .AddSingleton<ArmClient>()
     .AddSingleton(services =>
     {
-        var options = services.GetRequiredService<IOptions<BotOptions>>().Value;
+        var options = services.GetRequiredService<IOptions<BotConfiguration>>().Value;
         var client = services.GetRequiredService<ArmClient>();
         return client.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{options.SubscriptionId}"));
     })
     .AddSingleton(services =>
     {
-        var options = services.GetRequiredService<IOptions<BotOptions>>().Value;
+        var options = services.GetRequiredService<IOptions<BotConfiguration>>().Value;
         var subscription = services.GetRequiredService<SubscriptionResource>();
         return subscription.GetResourceGroup(options.ResourceGroupName).Value;
     })
     .AddTransient(services =>
     {
-        var options = services.GetRequiredService<IOptions<BotOptions>>().Value;
+        var options = services.GetRequiredService<IOptions<BotConfiguration>>().Value;
         var rg = services.GetRequiredService<ResourceGroupResource>();
         return rg.GetContainerGroup(options.ContainerGroupName).Value;
     });

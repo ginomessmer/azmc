@@ -1,4 +1,4 @@
-﻿using AzmcBot.Options;
+﻿using AzmcBot.Configuration;
 using Azure.ResourceManager.ContainerInstance;
 using Discord;
 using Discord.Interactions;
@@ -9,13 +9,16 @@ namespace AzmcBot.Modules
     public class MinecraftServerModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly ContainerGroupResource _container;
-        private readonly BotOptions _options;
+        private readonly BotConfiguration _config;
         private readonly ILogger<MinecraftServerModule> _logger;
 
-        public MinecraftServerModule(ContainerGroupResource container, IOptions<BotOptions> options, ILogger<MinecraftServerModule> logger)
+        public MinecraftServerModule(
+            ContainerGroupResource container,
+            IOptions<BotConfiguration> config,
+            ILogger<MinecraftServerModule> logger)
 	    {
             _container = container;
-            _options = options.Value;
+            _config = config.Value;
             _logger = logger;
 	    }
 
@@ -67,7 +70,7 @@ namespace AzmcBot.Modules
             try
             {
                 await ModifyOriginalResponseAsync(m => m.Embed = new EmbedBuilder()
-                    .WithTitle("Server starting")
+                    .WithTitle("Server is starting")
                     .WithDescription("Please wait a short moment while we're getting things ready...")
                     .WithColor(Color.Blue)
                     .Build());
@@ -75,7 +78,7 @@ namespace AzmcBot.Modules
                 await _container.StartAsync(Azure.WaitUntil.Completed);
 
                 await ModifyOriginalResponseAsync(m => m.Embed = new EmbedBuilder()
-                    .WithTitle("Server up and running")
+                    .WithTitle("Server is up and running")
                     .WithColor(Color.Green)
                     .WithFooter($"Join {_container.Data.IPAddress.Fqdn}")
                     .Build());

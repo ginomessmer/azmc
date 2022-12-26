@@ -1,6 +1,6 @@
-﻿namespace AzmcBot.Options;
+﻿namespace AzmcBot.Configuration;
 
-public class BotOptions
+public class BotConfiguration
 {
     public string DiscordToken { get; set; }
 

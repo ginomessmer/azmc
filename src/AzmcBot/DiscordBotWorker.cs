@@ -1,4 +1,4 @@
-﻿using AzmcBot.Options;
+﻿using AzmcBot.Configuration;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Options;
@@ -11,7 +11,7 @@ public class DiscordBotWorker : IHostedService
     private readonly ILogger<DiscordBotWorker> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly IConfiguration _config;
-    private readonly BotOptions _options;
+    private readonly BotConfiguration _options;
 
     public DiscordBotWorker(
         DiscordSocketClient client,
@@ -19,7 +19,7 @@ public class DiscordBotWorker : IHostedService
         ILogger<DiscordBotWorker> logger,
         IServiceProvider serviceProvider,
         IConfiguration config,
-        IOptions<BotOptions> options)
+        IOptions<BotConfiguration> options)
     {
         _client = client;
         _interactionService = interactionService;
