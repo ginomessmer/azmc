@@ -44,6 +44,7 @@ param networkSecurityGroupName string = 'nsg-${vmName}'
 
 var publicIPAddressName = 'pip-${vmName}'
 var networkInterfaceName = 'nic-${vmName}'
+var keyVaultName = 'kv-${vmName}'
 var osDiskType = 'Standard_LRS'
 var subnetAddressPrefix = '10.1.0.0/24'
 var addressPrefix = '10.1.0.0/16'
@@ -146,6 +147,9 @@ resource publicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
 resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
   name: vmName
   location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     hardwareProfile: {
       vmSize: vmSize
@@ -180,6 +184,38 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
     }
   }
 }
+
+// Key Vault for secret management
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
+  name: keyVaultName
+  location: location
+  properties: {
+    enabledForDeployment: true
+    enabledForTemplateDeployment: false
+    enabledForDiskEncryption: false
+    tenantId: vm.identity.tenantId
+    accessPolicies: [
+      {
+        tenantId: vm.identity.tenantId
+        objectId: vm.identity.principalId
+        permissions: {
+          keys: [
+            'get'
+          ]
+          secrets: [
+            'list'
+            'get'
+          ]
+        }
+      }
+    ]
+    sku: {
+      name: 'standard'
+      family: 'A'
+    }
+  }
+}
+
 
 output adminUsername string = adminUsername
 output hostname string = publicIP.properties.dnsSettings.fqdn
