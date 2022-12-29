@@ -1,4 +1,6 @@
-param name string
+param name string = resourceGroup().name
+
+param enableOverviewer bool
 
 @secure()
 param botVmPassword string
@@ -9,8 +11,9 @@ param location string = resourceGroup().location
 module minecraft 'minecraft.bicep' = {
   name: 'minecraftModule'
   params: {
-    Location: location
-    Name: name
+    location: location
+    name: name
+    overviewerEnabled: enableOverviewer
   }
 }
 

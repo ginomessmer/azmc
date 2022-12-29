@@ -1,30 +1,89 @@
-param Location string = resourceGroup().location
-param Name string = 'azmc'
-param MinecraftVersion string = 'LATEST'
-param MemorySize int = 3
-param CpuCores int = 2
-param OverviewerEnabled bool = true
+param location string = resourceGroup().location
+param name string = 'azmc'
+param minecraftVersion string = 'LATEST'
+param memorySize int = 3
+param cpuCores int = 2
+param overviewerEnabled bool
 
 @allowed([
   'TRUE'
   'FALSE'
 ])
-param IsAutostopEnabled string = 'TRUE'
+param isAutostopEnabled string = 'TRUE'
 
-var ServerShareName = 'server'
-var OverviewerShareName = 'overviewer'
-var ServerMountPath = '/data'
-var ServerType = 'SPIGOT'
+var serverShareName = 'server'
+var overviewerShareName = 'overviewer'
+var serverMountPath = '/data'
+var serverType = 'SPIGOT'
 
 // Container settings
-var OverviewerContainer = {
+
+var minecraftContainer = {
+  name: 'server'
+  properties: {
+    image: 'itzg/minecraft-server'
+    ports: [
+      {
+        port: 25565
+      }
+    ]
+    environmentVariables: [
+      {
+        name: 'EULA'
+        value: 'true'
+      }
+      {
+        name: 'TYPE'
+        value: serverType
+      }
+      {
+        name: 'VERSION'
+        value: minecraftVersion
+      }
+      {
+        name: 'ENABLE_AUTOSTOP'
+        value: isAutostopEnabled
+      }
+      {
+        name: 'MEMORY'
+        value: '${memorySize}G'
+      }
+    ]
+    volumeMounts: [
+      {
+        name: 'server'
+        mountPath: serverMountPath
+        readOnly: false
+      }
+    ]
+    resources: {
+      requests: {
+        cpu: cpuCores
+        memoryInGB: memorySize + 1
+      }
+    }
+  }
+}
+
+var minecraftContainerVolume = {
+  name: 'server'
+  azureFile: {
+    readOnly: false
+    shareName: serverShareName
+    storageAccountName: storage.name
+    storageAccountKey: storage.listKeys().keys[0].value
+  }
+}
+
+
+var overviewerContainer = {
   name: 'overviewer'
   properties: {
     image: 'mide/minecraft-overviewer'
     environmentVariables: [
       {
         name: 'MINECRAFT_VERSION'
-        value: toLower(MinecraftVersion)
+        value: toLower(minecraftVersion)
       }
     ]
     volumeMounts: [
@@ -48,23 +107,27 @@ var OverviewerContainer = {
   }
 }
 
-var OverviewerContainerVolume = {
+var overviewerContainerVolume = {
   name: 'overviewer'
   azureFile: {
     readOnly: false
-    shareName: OverviewerShareName
+    shareName: overviewerShareName
     storageAccountName: storage.name
     storageAccountKey: storage.listKeys().keys[0].value
   }
 }
 
 
+var containers = overviewerEnabled ? [minecraftContainer, overviewerContainer] : [minecraftContainer]
+var containerVolumes = overviewerEnabled ? [minecraftContainerVolume, overviewerContainerVolume] : [minecraftContainerVolume]
+
+
 /*
  * STORAGE
  */
 resource storage 'Microsoft.Storage/storageAccounts@2021-02-01' = {
-  name: Name
-  location: Location
+  name: 'azmc${uniqueString(name)}'
+  location: location
   kind: 'StorageV2'
   sku: {
     name: 'Standard_LRS'
@@ -72,15 +135,15 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-02-01' = {
 }
 
 resource serverShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-09-01' = {
-  name: '${storage.name}/default/${ServerShareName}'
+  name: '${storage.name}/default/${serverShareName}'
   properties: {
     accessTier: 'Hot'
     shareQuota: 1024
   }
 }
 
-resource overviewerShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-09-01' = if(OverviewerEnabled) {
-  name: '${storage.name}/default/${OverviewerShareName}'
+resource overviewerShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-09-01' = if(overviewerEnabled) {
+  name: '${storage.name}/default/${overviewerShareName}'
   properties: {
     accessTier: 'Hot'
     shareQuota: 256
@@ -91,70 +154,11 @@ resource overviewerShare 'Microsoft.Storage/storageAccounts/fileServices/shares@
  * COMPUTE
  */
 resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01' = {
-  name: Name
-  location: Location
+  name: 'ci-${name}'
+  location: location
   properties: {
-    containers: [
-      {
-        name: 'server'
-        properties: {
-          image: 'itzg/minecraft-server'
-          ports: [
-            {
-              port: 25565
-            }
-          ]
-          environmentVariables: [
-            {
-              name: 'EULA'
-              value: 'true'
-            }
-            {
-              name: 'TYPE'
-              value: ServerType
-            }
-            {
-              name: 'VERSION'
-              value: MinecraftVersion
-            }
-            {
-              name: 'ENABLE_AUTOSTOP'
-              value: IsAutostopEnabled
-            }
-            {
-              name: 'MEMORY'
-              value: '${MemorySize}G'
-            }
-          ]
-          volumeMounts: [
-            {
-              name: 'server'
-              mountPath: ServerMountPath
-              readOnly: false
-            }
-          ]
-          resources: {
-            requests: {
-              cpu: CpuCores
-              memoryInGB: MemorySize + 1
-            }
-          }
-        }
-      }
-      OverviewerEnabled ? OverviewerContainer : {}
-    ]
-    volumes: [
-      {
-        name: 'server'
-        azureFile: {
-          readOnly: false
-          shareName: ServerShareName
-          storageAccountName: storage.name
-          storageAccountKey: storage.listKeys().keys[0].value
-        }
-      }
-      OverviewerEnabled ? OverviewerContainerVolume : {}
-    ]
+    containers: containers
+    volumes: containerVolumes
     restartPolicy: 'OnFailure'
     osType: 'Linux'
     diagnostics: {
@@ -165,7 +169,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01'
     }
     ipAddress: {
       type: 'Public'
-      dnsNameLabel: 'play${Name}'
+      dnsNameLabel: 'play${name}'
       ports: [
         {
           protocol: 'TCP'
@@ -177,8 +181,8 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01'
 }
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
-  name: '${Name}-workspace'
-  location: Location
+  name: 'la-${name}-workspace'
+  location: location
   properties: {
     sku: {
       name: 'PerGB2018'
@@ -187,3 +191,4 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10
 }
 
 output joinHostname string = containerGroup.properties.ipAddress.fqdn 
+output containerGroupName string = containerGroup.name

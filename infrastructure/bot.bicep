@@ -87,23 +87,6 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-05-01' = {
 resource nsg 'Microsoft.Network/networkSecurityGroups@2022-05-01' = {
   name: networkSecurityGroupName
   location: location
-  properties: {
-    securityRules: [
-      {
-        name: 'SSH'
-        properties: {
-          priority: 1000
-          protocol: 'Tcp'
-          access: 'Allow'
-          direction: 'Inbound'
-          sourceAddressPrefix: '*'
-          sourcePortRange: '*'
-          destinationAddressPrefix: '*'
-          destinationPortRange: '22'
-        }
-      }
-    ]
-  }
 }
 
 resource vnet 'Microsoft.Network/virtualNetworks@2022-05-01' = {
@@ -220,3 +203,4 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
 output adminUsername string = adminUsername
 output hostname string = publicIP.properties.dnsSettings.fqdn
 output sshCommand string = 'ssh ${adminUsername}@${publicIP.properties.dnsSettings.fqdn}'
+output vmPrincipalId string = vm.identity.principalId
