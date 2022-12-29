@@ -185,3 +185,5 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10
     }
   }
 }
+
+output joinHostname string = containerGroup.properties.ipAddress.fqdn 

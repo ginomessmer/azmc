@@ -44,7 +44,7 @@ param networkSecurityGroupName string = 'nsg-${vmName}'
 
 var publicIPAddressName = 'pip-${vmName}'
 var networkInterfaceName = 'nic-${vmName}'
-var keyVaultName = 'kv-${vmName}'
+var keyVaultName = take('kv-${vmName}-${uniqueString(resourceGroup().id)}', 24)
 var osDiskType = 'Standard_LRS'
 var subnetAddressPrefix = '10.1.0.0/24'
 var addressPrefix = '10.1.0.0/16'
@@ -60,7 +60,7 @@ var linuxConfiguration = {
   }
 }
 
-resource nic 'Microsoft.Network/networkInterfaces@2021-05-01' = {
+resource nic 'Microsoft.Network/networkInterfaces@2022-05-01' = {
   name: networkInterfaceName
   location: location
   properties: {
@@ -69,7 +69,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2021-05-01' = {
         name: 'public'
         properties: {
           subnet: {
-            id: subnet.id
+            id: vnet.properties.subnets[0].id
           }
           privateIPAllocationMethod: 'Dynamic'
           publicIPAddress: {
@@ -84,7 +84,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2021-05-01' = {
   }
 }
 
-resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+resource nsg 'Microsoft.Network/networkSecurityGroups@2022-05-01' = {
   name: networkSecurityGroupName
   location: location
   properties: {
@@ -106,7 +106,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
   }
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
+resource vnet 'Microsoft.Network/virtualNetworks@2022-05-01' = {
   name: virtualNetworkName
   location: location
   properties: {
@@ -115,20 +115,20 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
         addressPrefix
       ]
     }
+    subnets: [
+      {
+        name: subnetName
+        properties: {
+          addressPrefix: subnetAddressPrefix
+          privateEndpointNetworkPolicies: 'Enabled'
+          privateLinkServiceNetworkPolicies: 'Enabled'
+        }
+      }
+    ]
   }
 }
 
-resource subnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' = {
-  parent: vnet
-  name: subnetName
-  properties: {
-    addressPrefix: subnetAddressPrefix
-    privateEndpointNetworkPolicies: 'Enabled'
-    privateLinkServiceNetworkPolicies: 'Enabled'
-  }
-}
-
-resource publicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
+resource publicIP 'Microsoft.Network/publicIPAddresses@2022-05-01' = {
   name: publicIPAddressName
   location: location
   sku: {
@@ -144,7 +144,7 @@ resource publicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
   }
 }
 
-resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
+resource vm 'Microsoft.Compute/virtualMachines@2022-08-01' = {
   name: vmName
   location: location
   identity: {
@@ -180,7 +180,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
       adminUsername: adminUsername
       adminPassword: adminPasswordOrKey
       linuxConfiguration: ((authenticationType == 'password') ? null : linuxConfiguration)
-      customData: loadFileAsBase64('bot.cloud-init')
+      customData: base64(format(loadTextContent('bot.cloud-init'), keyVaultName))
     }
   }
 }
