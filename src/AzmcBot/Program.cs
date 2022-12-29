@@ -79,8 +79,10 @@ app.Run();
 
 static void AddAzureKeyVault(WebApplicationBuilder builder)
 {
-    if (builder.Environment.IsProduction())
+    var keyVaultName = builder.Configuration["KeyVaultName"];
+
+    if (builder.Environment.IsProduction() || !string.IsNullOrEmpty(keyVaultName))
         builder.Configuration.AddAzureKeyVault(
-            new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/"),
+            new Uri($"https://{keyVaultName}.vault.azure.net/"),
             new DefaultAzureCredential());
 }
