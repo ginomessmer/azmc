@@ -10,6 +10,8 @@ using Azure.ResourceManager.ContainerInstance;
 
 var builder = WebApplication.CreateBuilder(args);
 
+AddAzureKeyVault(builder);
+
 builder.Services.Configure<BotConfiguration>(builder.Configuration.GetSection("Bot"));
 
 // Add services to the container.
@@ -74,3 +76,11 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static void AddAzureKeyVault(WebApplicationBuilder builder)
+{
+    if (builder.Environment.IsProduction())
+        builder.Configuration.AddAzureKeyVault(
+            new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/"),
+            new DefaultAzureCredential());
+}
