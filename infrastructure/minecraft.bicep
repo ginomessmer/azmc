@@ -3,6 +3,7 @@ param Name string = 'azmc'
 param MinecraftVersion string = 'LATEST'
 param MemorySize int = 3
 param CpuCores int = 2
+param OverviewerEnabled bool = true
 
 @allowed([
   'TRUE'
@@ -14,6 +15,48 @@ var ServerShareName = 'server'
 var OverviewerShareName = 'overviewer'
 var ServerMountPath = '/data'
 var ServerType = 'SPIGOT'
+
+// Container settings
+var OverviewerContainer = {
+  name: 'overviewer'
+  properties: {
+    image: 'mide/minecraft-overviewer'
+    environmentVariables: [
+      {
+        name: 'MINECRAFT_VERSION'
+        value: toLower(MinecraftVersion)
+      }
+    ]
+    volumeMounts: [
+      {
+        name: 'server'
+        mountPath: '/home/minecraft/server'
+        readOnly: true
+      }
+      {
+        name: 'overviewer'
+        mountPath: '/home/minecraft/render'
+        readOnly: false
+      }
+    ]
+    resources: {
+      requests: {
+        cpu: 1
+        memoryInGB: 2
+      }
+    }
+  }
+}
+
+var OverviewerContainerVolume = {
+  name: 'overviewer'
+  azureFile: {
+    readOnly: false
+    shareName: OverviewerShareName
+    storageAccountName: storage.name
+    storageAccountKey: storage.listKeys().keys[0].value
+  }
+}
 
 
 /*
@@ -36,7 +79,7 @@ resource serverShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021
   }
 }
 
-resource overviewerShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-09-01' = {
+resource overviewerShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-09-01' = if(OverviewerEnabled) {
   name: '${storage.name}/default/${OverviewerShareName}'
   properties: {
     accessTier: 'Hot'
@@ -98,36 +141,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01'
           }
         }
       }
-      {
-        name: 'overviewer'
-        properties: {
-          image: 'mide/minecraft-overviewer'
-          environmentVariables: [
-            {
-              name: 'MINECRAFT_VERSION'
-              value: toLower(MinecraftVersion)
-            }
-          ]
-          volumeMounts: [
-            {
-              name: 'server'
-              mountPath: '/home/minecraft/server'
-              readOnly: true
-            }
-            {
-              name: 'overviewer'
-              mountPath: '/home/minecraft/render'
-              readOnly: false
-            }
-          ]
-          resources: {
-            requests: {
-              cpu: 1
-              memoryInGB: 2
-            }
-          }
-        }
-      }
+      OverviewerEnabled ? OverviewerContainer : {}
     ]
     volumes: [
       {
@@ -139,15 +153,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01'
           storageAccountKey: storage.listKeys().keys[0].value
         }
       }
-      {
-        name: 'overviewer'
-        azureFile: {
-          readOnly: false
-          shareName: OverviewerShareName
-          storageAccountName: storage.name
-          storageAccountKey: storage.listKeys().keys[0].value
-        }
-      }
+      OverviewerEnabled ? OverviewerContainerVolume : {}
     ]
     restartPolicy: 'OnFailure'
     osType: 'Linux'
@@ -159,7 +165,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01'
     }
     ipAddress: {
       type: 'Public'
-      dnsNameLabel: '$play{Name}'
+      dnsNameLabel: 'play${Name}'
       ports: [
         {
           protocol: 'TCP'
