@@ -150,6 +150,16 @@ resource overviewerShare 'Microsoft.Storage/storageAccounts/fileServices/shares@
   }
 }
 
+resource storageLock 'Microsoft.Authorization/locks@2020-05-01' = {
+  name: 'lock'
+  scope: storage
+  properties: {
+    level: 'CanNotDelete'
+    notes: 'Auto-created by azmc.bicep'
+  }
+}
+
+
 /*
  * COMPUTE
  */

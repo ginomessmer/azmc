@@ -1,3 +1,9 @@
+@description('Container group name of the game server.')
+param containerGroupName string
+
+@description('Discord bot token.')
+param discordToken string
+
 @description('The name of you Virtual Machine.')
 param vmName string = 'vm-azmc-bot'
 
@@ -197,7 +203,43 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
       family: 'A'
     }
   }
+
+  resource tenantIdSecret 'secrets@2019-09-01' = {
+    name: 'Bot--TenantId'
+    properties: {
+      value: tenant().tenantId
+    }
+  }
+
+  resource subscriptionIdSecret 'secrets@2019-09-01' = {
+    name: 'Bot--SubscriptionId'
+    properties: {
+      value: subscription().subscriptionId
+    }
+  }
+
+  resource rgNameSecret 'secrets@2019-09-01' = {
+    name: 'Bot--ResourceGroupName'
+    properties: {
+      value: resourceGroup().name
+    }
+  }
+
+  resource containerNameSecret 'secrets@2019-09-01' = {
+    name: 'Bot--ContainerGroupName'
+    properties: {
+      value: containerGroupName
+    }
+  }
+
+  resource discordTokenSecret 'secrets@2019-09-01' = {
+    name: 'Bot--DiscordToken'
+    properties: {
+      value: discordToken
+    }
+  }
 }
+
 
 
 output adminUsername string = adminUsername

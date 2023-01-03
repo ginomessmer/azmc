@@ -1,6 +1,9 @@
 param name string = resourceGroup().name
 
-param enableOverviewer bool
+@secure()
+param discordBotToken string
+
+param enableOverviewer bool = false
 
 @secure()
 param botVmPassword string
@@ -22,6 +25,8 @@ module bot 'bot.bicep' = {
   params: {
     location: location
     adminPasswordOrKey: botVmPassword
+    containerGroupName: minecraft.outputs.containerGroupName
+    discordToken: discordBotToken
   }
 }
 
