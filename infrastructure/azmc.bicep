@@ -30,4 +30,12 @@ module bot 'bot.bicep' = {
   }
 }
 
+module roles 'roles.bicep' = {
+  name: 'rolesModule'
+  params: {
+    botPrincipalId: bot.outputs.vmPrincipalId
+  }
+}
+
+
 output minecraftServerJoinHostname string = minecraft.outputs.joinHostname

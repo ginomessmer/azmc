@@ -171,6 +171,11 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-08-01' = {
       linuxConfiguration: ((authenticationType == 'password') ? null : linuxConfiguration)
       customData: base64(format(loadTextContent('bot.cloud-init'), keyVaultName))
     }
+    diagnosticsProfile: {
+      bootDiagnostics: {
+        enabled: true
+      }
+    }
   }
 }
 
