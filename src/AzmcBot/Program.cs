@@ -7,6 +7,7 @@ using Azure.ResourceManager;
 using Azure.Core;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ContainerInstance;
+using AzmcBot.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,27 +39,21 @@ builder.Services
     })
     .AddSingleton<TokenCredential, DefaultAzureCredential>(services => new DefaultAzureCredential(services.GetRequiredService<DefaultAzureCredentialOptions>()))
     .AddSingleton<ArmClient>()
-    .AddSingleton(services =>
-    {
-        var options = services.GetRequiredService<IOptions<BotConfiguration>>().Value;
-        var client = services.GetRequiredService<ArmClient>();
-        return client.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{options.SubscriptionId}"));
-    })
-    .AddSingleton(services =>
-    {
-        var options = services.GetRequiredService<IOptions<BotConfiguration>>().Value;
-        var subscription = services.GetRequiredService<SubscriptionResource>();
-        return subscription.GetResourceGroup(options.ResourceGroupName).Value;
-    })
     .AddTransient(services =>
     {
         var options = services.GetRequiredService<IOptions<BotConfiguration>>().Value;
-        var rg = services.GetRequiredService<ResourceGroupResource>();
-        return rg.GetContainerGroup(options.ContainerGroupName).Value;
+        var client = services.GetRequiredService<ArmClient>();
+        return client.GetContainerGroupResource(
+            ContainerGroupResource.CreateResourceIdentifier(
+                options.SubscriptionId,
+                options.ResourceGroupName,
+                options.ContainerGroupName));
     });
 
 // Add hosted services
-builder.Services.AddHostedService<DiscordBotWorker>();
+builder.Services
+    .AddHostedService<DiscordBotWorker>()
+    .AddHostedService<UpdateDiscordStatusWorker>();
 
 var app = builder.Build();
 
