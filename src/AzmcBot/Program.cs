@@ -7,6 +7,7 @@ using Azure.ResourceManager;
 using Azure.Core;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ContainerInstance;
+using AzmcBot.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,7 +51,9 @@ builder.Services
     });
 
 // Add hosted services
-builder.Services.AddHostedService<DiscordBotWorker>();
+builder.Services
+    .AddHostedService<DiscordBotWorker>()
+    .AddHostedService<UpdateDiscordStatusWorker>();
 
 var app = builder.Build();
 

@@ -4,6 +4,8 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Options;
 using System.Reflection;
 
+namespace AzmcBot.Workers;
+
 public class DiscordBotWorker : IHostedService
 {
     private readonly DiscordSocketClient _client;
