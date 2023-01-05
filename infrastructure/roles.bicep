@@ -1,6 +1,5 @@
 param botPrincipalId string
 
-
 resource containerInstanceManagerRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {
   name: guid(resourceGroup().id, 'containerInstanceManagerRoleDefinition')
   scope: resourceGroup()
@@ -16,13 +15,14 @@ resource containerInstanceManagerRoleDefinition 'Microsoft.Authorization/roleDef
           'Microsoft.ContainerInstance/containerGroups/start/action'
           'Microsoft.ContainerInstance/containerGroups/stop/action'
           'Microsoft.ContainerInstance/containerGroups/restart/action'
+          'Microsoft.ContainerInstance/*/read'
         ]
       }
     ]
   }
 }
 
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+resource managerRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
   name: guid(resourceGroup().id, 'bot-manager')
   scope: resourceGroup()
   properties: {

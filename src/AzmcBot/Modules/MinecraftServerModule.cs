@@ -75,8 +75,10 @@ namespace AzmcBot.Modules
                     .WithColor(Color.Blue)
                     .Build());
 
+                _logger.LogInformation("Server start request sent");
                 await _container.StartAsync(Azure.WaitUntil.Completed);
 
+                _logger.LogInformation("Server started");
                 await ModifyOriginalResponseAsync(m => m.Embed = new EmbedBuilder()
                     .WithTitle("Server is up and running")
                     .WithColor(Color.Green)
@@ -98,7 +100,10 @@ namespace AzmcBot.Modules
         [SlashCommand("stop", "Stops the Minecraft server")]
         public async Task Stop()
         {
+            logger.LogInformation("Stopping server");
             await _container.StopAsync();
+
+            logger.LogInformation("Server stopped");
             await RespondAsync(embed: new EmbedBuilder()
                     .WithTitle("Server stopped")
                     .WithColor(Color.Orange)
