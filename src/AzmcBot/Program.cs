@@ -39,15 +39,19 @@ builder.Services
     })
     .AddSingleton<TokenCredential, DefaultAzureCredential>(services => new DefaultAzureCredential(services.GetRequiredService<DefaultAzureCredentialOptions>()))
     .AddSingleton<ArmClient>()
-    .AddTransient(services =>
+    .AddScoped(async services =>
     {
         var options = services.GetRequiredService<IOptions<BotConfiguration>>().Value;
         var client = services.GetRequiredService<ArmClient>();
-        return client.GetContainerGroupResource(
-            ContainerGroupResource.CreateResourceIdentifier(
+
+        var containerResourceId = ContainerGroupResource.CreateResourceIdentifier(
                 options.SubscriptionId,
                 options.ResourceGroupName,
-                options.ContainerGroupName));
+                options.ContainerGroupName);
+
+        var container = client.GetContainerGroupResource(containerResourceId);
+        
+        return (await container.GetAsync()).Value;
     });
 
 // Add hosted services

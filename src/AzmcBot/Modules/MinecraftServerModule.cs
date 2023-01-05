@@ -100,10 +100,10 @@ namespace AzmcBot.Modules
         [SlashCommand("stop", "Stops the Minecraft server")]
         public async Task Stop()
         {
-            logger.LogInformation("Stopping server");
+            _logger.LogInformation("Stopping server");
             await _container.StopAsync();
 
-            logger.LogInformation("Server stopped");
+            _logger.LogInformation("Server stopped");
             await RespondAsync(embed: new EmbedBuilder()
                     .WithTitle("Server stopped")
                     .WithColor(Color.Orange)
