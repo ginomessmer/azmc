@@ -56,8 +56,11 @@ builder.Services
 
 // Add hosted services
 builder.Services
-    .AddHostedService<DiscordBotWorker>()
-    .AddHostedService<UpdateDiscordStatusWorker>();
+    .AddHostedService<DiscordBotWorker>();
+    //.AddHostedService<UpdateDiscordStatusWorker>();
+
+builder.Services.AddHealthChecks()
+    .AddCheck<DiscordApplicationHealthCheck>("DiscordApp");
 
 var app = builder.Build();
 
@@ -73,6 +76,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 app.Run();
 
