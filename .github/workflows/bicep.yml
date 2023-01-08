@@ -1,5 +1,13 @@
 on:
+  workflow_dispatch:
   push:
+    paths: 
+      - infrastructure/**
+    branches: 
+      - main
+  pull_request:
+    paths: 
+      - infrastructure/**
     branches: 
       - main
 
