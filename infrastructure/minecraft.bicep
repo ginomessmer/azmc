@@ -16,6 +16,12 @@ var overviewerShareName = 'overviewer'
 var serverMountPath = '/data'
 var serverType = 'SPIGOT'
 
+var storageAccountName = take(replace(replace('${name}${uniqueString(name)}', '-', ''), '_', ''), 24)
+var serverShareResourceName = '${storage.name}/default/${serverShareName}'
+var overviewerShareResourceName = '${storage.name}/default/${overviewerShareName}'
+var containerGroupName = 'cg-${name}'
+var workspaceName = 'ws-${name}'
+
 // Container settings
 
 var minecraftContainer = {
@@ -125,8 +131,8 @@ var containerVolumes = overviewerEnabled ? [minecraftContainerVolume, overviewer
 /*
  * STORAGE
  */
-resource storage 'Microsoft.Storage/storageAccounts@2021-02-01' = {
-  name: 'azmc${uniqueString(name)}'
+resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
+  name: storageAccountName
   location: location
   kind: 'StorageV2'
   sku: {
@@ -134,16 +140,16 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-02-01' = {
   }
 }
 
-resource serverShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-09-01' = {
-  name: '${storage.name}/default/${serverShareName}'
+resource serverShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2022-09-01' = {
+  name: serverShareResourceName
   properties: {
     accessTier: 'Hot'
-    shareQuota: 1024
+    shareQuota: 16
   }
 }
 
-resource overviewerShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-09-01' = if(overviewerEnabled) {
-  name: '${storage.name}/default/${overviewerShareName}'
+resource overviewerShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2022-09-01' = if(overviewerEnabled) {
+  name: overviewerShareResourceName
   properties: {
     accessTier: 'Hot'
     shareQuota: 256
@@ -163,8 +169,8 @@ resource storageLock 'Microsoft.Authorization/locks@2020-05-01' = {
 /*
  * COMPUTE
  */
-resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01' = {
-  name: 'ci-${name}'
+resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2022-09-01' = {
+  name: containerGroupName
   location: location
   properties: {
     containers: containers
@@ -190,8 +196,8 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01'
   }
 }
 
-resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
-  name: 'la-${name}-workspace'
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
+  name: workspaceName
   location: location
   properties: {
     sku: {

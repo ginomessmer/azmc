@@ -24,6 +24,7 @@ module bot 'bot.bicep' = {
   name: 'botModule'
   params: {
     location: location
+    name: name
     adminPasswordOrKey: botVmPassword
     containerGroupName: minecraft.outputs.containerGroupName
     discordToken: discordBotToken

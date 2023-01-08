@@ -4,8 +4,8 @@ param containerGroupName string
 @description('Discord bot token.')
 param discordToken string
 
-@description('The name of you Virtual Machine.')
-param vmName string = 'vm-azmc-bot'
+@description('Name of the server')
+param name string
 
 @description('Username for the Virtual Machine.')
 param adminUsername string = 'azmc'
@@ -21,14 +21,9 @@ param authenticationType string = 'password'
 @secure()
 param adminPasswordOrKey string
 
-@description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
-param dnsLabelPrefix string = toLower('${vmName}-${uniqueString(resourceGroup().id)}')
 
 @description('The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version.')
 @allowed([
-  '12.04.5-LTS'
-  '14.04.5-LTS'
-  '16.04.0-LTS'
   '18.04-LTS'
 ])
 param ubuntuOSVersion string = '18.04-LTS'
@@ -39,15 +34,13 @@ param location string = resourceGroup().location
 @description('The size of the VM')
 param vmSize string = 'Standard_B1ls'
 
-@description('Name of the VNET')
-param virtualNetworkName string = 'vnet-${vmName}'
-
 @description('Name of the subnet in the virtual network')
 param subnetName string = 'Subnet-1'
 
-@description('Name of the Network Security Group')
-param networkSecurityGroupName string = 'nsg-${vmName}'
-
+var vmName = 'vm-${name}-bot'
+var dnsLabelPrefix = toLower('${name}-bot')
+var virtualNetworkName = 'vnet-${vmName}'
+var networkSecurityGroupName = 'nsg-${vmName}'
 var publicIPAddressName = 'pip-${vmName}'
 var networkInterfaceName = 'nic-${vmName}'
 var keyVaultName = take('kv-${vmName}-${uniqueString(resourceGroup().id)}', 24)

@@ -1,0 +1,24 @@
+on:
+  workflow_dispatch:
+  push:
+    paths: 
+      - infrastructure/**
+    branches: 
+      - main
+  pull_request:
+    paths: 
+      - infrastructure/**
+    branches: 
+      - main
+
+name: Build Bicep
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build ARM Template
+      uses: Azure/cli@v1.0.7
+      with:
+        inlineScript: az bicep build -f infrastructure/azmc.bicep --stdout
