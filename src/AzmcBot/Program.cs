@@ -8,6 +8,7 @@ using Azure.Core;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ContainerInstance;
 using AzmcBot.Workers;
+using AzmcBot.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +40,7 @@ builder.Services
     })
     .AddSingleton<TokenCredential, DefaultAzureCredential>(services => new DefaultAzureCredential(services.GetRequiredService<DefaultAzureCredentialOptions>()))
     .AddSingleton<ArmClient>()
-    .AddScoped(async services =>
+    .AddScoped(services =>
     {
         var options = services.GetRequiredService<IOptions<BotConfiguration>>().Value;
         var client = services.GetRequiredService<ArmClient>();
@@ -51,7 +52,7 @@ builder.Services
 
         var container = client.GetContainerGroupResource(containerResourceId);
         
-        return (await container.GetAsync()).Value;
+        return container.Get().Value;
     });
 
 // Add hosted services
