@@ -125,7 +125,7 @@ var containerVolumes = overviewerEnabled ? [minecraftContainerVolume, overviewer
 /*
  * STORAGE
  */
-resource storage 'Microsoft.Storage/storageAccounts@2021-02-01' = {
+resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: 'azmc${uniqueString(name)}'
   location: location
   kind: 'StorageV2'
@@ -134,15 +134,15 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-02-01' = {
   }
 }
 
-resource serverShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-09-01' = {
+resource serverShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2022-09-01' = {
   name: '${storage.name}/default/${serverShareName}'
   properties: {
     accessTier: 'Hot'
-    shareQuota: 1024
+    shareQuota: 16
   }
 }
 
-resource overviewerShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-09-01' = if(overviewerEnabled) {
+resource overviewerShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2022-09-01' = if(overviewerEnabled) {
   name: '${storage.name}/default/${overviewerShareName}'
   properties: {
     accessTier: 'Hot'
@@ -163,7 +163,7 @@ resource storageLock 'Microsoft.Authorization/locks@2020-05-01' = {
 /*
  * COMPUTE
  */
-resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01' = {
+resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2022-09-01' = {
   name: 'ci-${name}'
   location: location
   properties: {
@@ -190,7 +190,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01'
   }
 }
 
-resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   name: 'la-${name}-workspace'
   location: location
   properties: {
