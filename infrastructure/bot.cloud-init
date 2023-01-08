@@ -1,4 +1,4 @@
 #cloud-config
 runcmd:
   - curl -fsSL https://get.docker.com | sh
-  - docker run --restart always --name azmc_bot -p 80:80 --pull always -e KeyVaultName={0} ghcr.io/ginomessmer/azmc/bot:main
+  - docker run -d --restart always --name azmc_bot -p 80:80 --pull always -e KeyVaultName={0} ghcr.io/ginomessmer/azmc/bot:main
