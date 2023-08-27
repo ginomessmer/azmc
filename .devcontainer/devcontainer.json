@@ -18,7 +18,10 @@
 		"ghcr.io/devcontainers/features/dotnet:1": {
 			"installUsingApt": true,
 			"version": "latest"
-		}
+		},
+		"ghcr.io/devcontainers/features/node": {
+			"version": "latest"
+		} 
 	},
 
 	// Use this environment variable if you need to bind mount your local source code into a new container.
@@ -36,7 +39,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"ms-azuretools.vscode-bicep"
+				"ms-azuretools.vscode-bicep",
+				"github.vscode-github-actions"
 			]
 		}
 	}
