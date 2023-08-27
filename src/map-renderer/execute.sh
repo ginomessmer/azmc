@@ -55,7 +55,7 @@ fi
 echo "Logged in to Azure CLI"
 
 # Get Azure Storage Account Key
-AZURE_STORAGE_KEY=$(az storage account keys list --account-name $AZURE_STORAGE_ACCOUNT --query "[0].value" -o tsv)
+AZURE_STORAGE_KEY=$(az storage account keys list --account-name $AZURE_STORAGE_ACCOUNT -g $AZURE_STORAGE_ACCOUNT_RG_NAME --query "[0].value" -o tsv)
 
 # Determine date from now and add one hour for SAS token expiry
 expiry=$(date -u -d "1 hour" '+%Y-%m-%dT%H:%MZ')

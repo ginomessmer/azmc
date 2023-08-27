@@ -76,6 +76,10 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = {
               value: renderingStorageAccountName
             }
             {
+              name: 'AZURE_STORAGE_ACCOUNT_RG_NAME'
+              value: resourceGroup().name
+            }
+            {
               name: 'AZURE_LOGIN_TYPE'
               value: 'managed-identity'
             }
