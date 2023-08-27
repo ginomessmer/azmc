@@ -1,14 +1,14 @@
 set -e
 
 # Required environment variables:
-# - AZURE_STORAGE_ACCOUNT
-# - AZURE_STORAGE_SHARE_MC_SERVER
-# - AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT
-# - AZURE_LOGIN_TYPE
-# - AZURE_CLIENT_ID (only required if AZURE_LOGIN_TYPE is set to service-principal)
-# - AZURE_CLIENT_SECRET (only required if AZURE_LOGIN_TYPE is set to service-principal)
-# - AZURE_TENANT_ID (only required if AZURE_LOGIN_TYPE is set to service-principal)
-# - AZURE_SUBSCRIPTION_ID (only required if AZURE_LOGIN_TYPE is set to interactive)
+# - AZURE_STORAGE_ACCOUNT:                                                                      The name of the Azure Storage Account where the Minecraft server files are stored.
+# - AZURE_STORAGE_SHARE_MC_SERVER:                                                              The name of the Azure File Share where the Minecraft server files can be found.
+# - AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT:                                                     The name of the Azure Blob Storage container where the BlueMap output should be uploaded to.
+# - AZURE_LOGIN_TYPE:                                                                           The login type to use for Azure CLI. Available options: service-principal, interactive, managed-identity
+# - AZURE_CLIENT_ID (only required if AZURE_LOGIN_TYPE is set to service-principal):            The client ID of the service principal to use for Azure CLI login.
+# - AZURE_CLIENT_SECRET (only required if AZURE_LOGIN_TYPE is set to service-principal):        The client secret of the service principal to use for Azure CLI login.
+# - AZURE_TENANT_ID (only required if AZURE_LOGIN_TYPE is set to service-principal):            The tenant ID of the service principal to use for Azure CLI login.
+# - AZURE_SUBSCRIPTION_ID (only required if AZURE_LOGIN_TYPE is set to interactive):            The subscription ID to use for Azure CLI login.
 
 # Check if required environment variables are set
 if [ -z "$AZURE_STORAGE_ACCOUNT" ]; then
@@ -102,20 +102,68 @@ sas=$(az storage container generate-sas \
 
 # Upload directory to Azure Blob Storage
 echo "Uploading Bluemap output to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
-azcopy copy "/app/web/web" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT?$sas" --recursive
+azcopy copy "/app/web/" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT?$sas" --recursive
 
 echo "Bluemap output uploaded"
 
-# Change content encoding of all json files to gzip
-echo "Changing content encoding of all json files to gzip"
-for file in /output/*.json; do
-    gzip -c "$file" > "$file.gz"
-    rm "$file"
-done
+# Change content encoding of all json files to gzip and content type to application/json in blob container
+echo "Changing content encoding of all json files to gzip in blob container $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
 
-az storage blob update-batch --account-name $AZURE_STORAGE_ACCOUNT --account-key $AZURE_STORAGE_KEY --source "/output" --pattern "*.json" --content-encoding "gzip" --content-type "application/json"
+# Get list of all json files
+json_files=$(az storage blob list \
+    --account-name $AZURE_STORAGE_ACCOUNT \
+    --account-key $AZURE_STORAGE_KEY \
+    --container-name $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
+    --query "[?ends_with(name, '.json.gz')].name" \
+    --output tsv)
+
+# Loop through all json files and change content encoding to gzip and content type to application/json
+function change_content_encoding() {
+    # Change content encoding to gzip and content type to application/json
+    az storage blob update \
+        --account-name $AZURE_STORAGE_ACCOUNT \
+        --account-key $AZURE_STORAGE_KEY \
+        --container-name $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
+        --name $1 \
+        --content-encoding gzip \
+        --content-type application/json
+
+    # Change file name ending from .json.gz to .json
+    new_file_name=$(echo "$1" | sed 's/\.json\.gz$/.json/')
+    az storage blob copy start-batch \
+        --destination-container $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
+        --destination-blob $new_file_name \
+        --destination-blob-type Detect \
+        --source-container $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
+        --source-blob $1 \
+        --account-name $AZURE_STORAGE_ACCOUNT \
+        --account-key $AZURE_STORAGE_KEY
+
+    # Delete old file
+    az storage blob delete \
+        --account-name $AZURE_STORAGE_ACCOUNT \
+        --account-key $AZURE_STORAGE_KEY \
+        --container-name $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
+        --name $1
+
+    echo "Changed content encoding of $1 to gzip and content type to application/json"
+}
+
+# Get list of all json files
+json_files=$(az storage blob list \
+    --account-name $AZURE_STORAGE_ACCOUNT \
+    --account-key $AZURE_STORAGE_KEY \
+    --container-name $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
+    --query "[?ends_with(name, '.json.gz')].name" \
+    --output tsv)
+
+# Loop through all json files and change content encoding to gzip and content type to application/json
+for file in $json_files; do
+    change_content_encoding $file &
+done
+wait
 
 echo "Content encoding changed"
 
-echo "Done"
-echo "Web map can be accessed at https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/index.html"
+echo "Done!"
+echo "Web map can be accessed at https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/web/index.html"
