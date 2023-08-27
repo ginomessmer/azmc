@@ -1,8 +1,18 @@
 param location string = resourceGroup().location
+
+@description('Display label of the container resources. These labels are visible in some FQDN. Min. 4 letters, max. 24 letters')
 param name string = 'azmc'
+
+@description('The Minecraft version of the server.')
 param minecraftVersion string = 'LATEST'
+
+@description('Recommended size: min. 3 GB RAM')
 param memorySize int = 3
+
+@description('Recommended size: min. 2 CPU cores')
 param cpuCores int = 2
+
+@description('')
 param overviewerEnabled bool
 
 @allowed([
@@ -124,10 +134,6 @@ var overviewerContainerVolume = {
 }
 
 
-var containers = overviewerEnabled ? [minecraftContainer, overviewerContainer] : [minecraftContainer]
-var containerVolumes = overviewerEnabled ? [minecraftContainerVolume, overviewerContainerVolume] : [minecraftContainerVolume]
-
-
 /*
  * STORAGE
  */
@@ -156,8 +162,26 @@ resource overviewerShare 'Microsoft.Storage/storageAccounts/fileServices/shares@
   }
 }
 
+resource serverShareLock 'Microsoft.Authorization/locks@2020-05-01' = {
+  name: 'storageLock'
+  scope: serverShare
+  properties: {
+    level: 'CanNotDelete'
+    notes: 'Auto-created by azmc.bicep'
+  }
+}
+
+resource overviewerShareLock 'Microsoft.Authorization/locks@2020-05-01' = if(overviewerEnabled) {
+  name: 'overviewerShareLock'
+  scope: overviewerShare
+  properties: {
+    level: 'CanNotDelete'
+    notes: 'Auto-created by azmc.bicep'
+  }
+}
+
 resource storageLock 'Microsoft.Authorization/locks@2020-05-01' = {
-  name: 'lock'
+  name: 'serverShareLock'
   scope: storage
   properties: {
     level: 'CanNotDelete'
@@ -173,8 +197,8 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2022-09-01'
   name: containerGroupName
   location: location
   properties: {
-    containers: containers
-    volumes: containerVolumes
+    containers: overviewerEnabled ? [minecraftContainer, overviewerContainer] : [minecraftContainer]
+    volumes: overviewerEnabled ? [minecraftContainerVolume, overviewerContainerVolume] : [minecraftContainerVolume]
     restartPolicy: 'OnFailure'
     osType: 'Linux'
     diagnostics: {

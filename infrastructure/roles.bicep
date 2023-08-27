@@ -22,7 +22,7 @@ resource containerInstanceManagerRoleDefinition 'Microsoft.Authorization/roleDef
   }
 }
 
-resource managerRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+resource managerRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(resourceGroup().id, 'bot-manager')
   scope: resourceGroup()
   properties: {

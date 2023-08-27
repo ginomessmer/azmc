@@ -202,43 +202,48 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
     }
   }
 
-  resource tenantIdSecret 'secrets@2019-09-01' = {
+  resource tenantIdSecret 'secrets@2022-07-01' = {
     name: 'Bot--TenantId'
     properties: {
       value: tenant().tenantId
     }
   }
 
-  resource subscriptionIdSecret 'secrets@2019-09-01' = {
+  resource subscriptionIdSecret 'secrets@2022-07-01' = {
     name: 'Bot--SubscriptionId'
     properties: {
       value: subscription().subscriptionId
     }
   }
 
-  resource rgNameSecret 'secrets@2019-09-01' = {
+  resource rgNameSecret 'secrets@2022-07-01' = {
     name: 'Bot--ResourceGroupName'
     properties: {
       value: resourceGroup().name
     }
   }
 
-  resource containerNameSecret 'secrets@2019-09-01' = {
+  resource containerNameSecret 'secrets@2022-07-01' = {
     name: 'Bot--ContainerGroupName'
     properties: {
       value: containerGroupName
     }
   }
 
-  resource discordTokenSecret 'secrets@2019-09-01' = {
+  resource discordTokenSecret 'secrets@2022-07-01' = {
     name: 'Bot--DiscordToken'
     properties: {
       value: discordToken
     }
   }
+
+  resource vmBotPasswordSecret 'secrets@2022-07-01' = {
+    name: 'VmBotSecret'
+    properties: {
+      value: adminPasswordOrKey
+    }
+  }
 }
-
-
 
 output adminUsername string = adminUsername
 output hostname string = publicIP.properties.dnsSettings.fqdn

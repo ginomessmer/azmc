@@ -6,7 +6,7 @@ param discordBotToken string
 param enableOverviewer bool = false
 
 @secure()
-param botVmPassword string
+param botVmPassword string = replace(newGuid(), '-', '')
 
 param location string = resourceGroup().location
 
@@ -38,5 +38,5 @@ module roles 'roles.bicep' = {
   }
 }
 
-
+@description('The join domain of the Minecraft server. Use this domain to join the server in-game.')
 output minecraftServerJoinHostname string = minecraft.outputs.joinHostname
