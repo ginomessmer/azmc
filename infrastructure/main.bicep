@@ -8,3 +8,22 @@ module storage 'modules/storage.bicep' = {
     projectName: projectName
   }
 }
+
+module server 'modules/server.bicep' = {
+  name: 'server'
+  params: {
+    location: location
+    projectName: projectName
+    serverShareName: storage.outputs.serverFileShareName
+    serverStorageAccountName: storage.outputs.storageAccountName
+  }
+}
+
+module rendering 'modules/renderer.bicep' = {
+  name: 'rendering'
+  params: {
+    location: location
+    projectName: projectName
+    renderingStorageAccountName: storage.outputs.storageAccountName
+  }
+}

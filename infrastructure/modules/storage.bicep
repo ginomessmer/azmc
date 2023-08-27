@@ -12,16 +12,21 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
     name: skuName
   }
   kind: 'StorageV2'
+}
 
-  resource serverFileShare 'fileServices' = {
-    name: 'default'
+resource serverFileServices 'Microsoft.Storage/storageAccounts/fileServices@2023-01-01' = {
+  parent: storageAccount
+  name: 'default'
+}
 
-    resource share 'shares' = {
-      name: 'server'
-      properties: {
-        accessTier: 'Hot'
-        shareQuota: 256
-      }
-    }
+resource serverFileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-01-01' = {
+  parent: serverFileServices
+  name: 'server'
+  properties: {
+    accessTier: 'Hot'
+    shareQuota: 256
   }
 }
+
+output storageAccountName string = storageAccount.name
+output serverFileShareName string = serverFileShare.name
