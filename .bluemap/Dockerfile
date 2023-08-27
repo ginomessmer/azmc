@@ -18,6 +18,9 @@ RUN apt-get update && apt-get install -y curl
 # Install Azure CLI
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
+# Copy Azure CLI config
+COPY az-cli.config /root/.azure/config
+
 # Install azcopy from Azure CLI
 RUN az extension add --name storage-preview
 

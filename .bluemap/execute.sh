@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e
 
 # Required environment variables:
@@ -70,7 +71,7 @@ sas=$(az storage share generate-sas \
     --https-only \
     --output tsv)
 
-echo "SAS token generated: $sas"
+echo "SAS token generated"
 
 # Download directory from Azure File Share
 echo "Downloading directory from Azure File Share $AZURE_STORAGE_SHARE_MC_SERVER"
@@ -109,42 +110,24 @@ echo "Bluemap output uploaded"
 # Change content encoding of all json files to gzip and content type to application/json in blob container
 echo "Changing content encoding of all json files to gzip in blob container $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
 
-# Get list of all json files
-json_files=$(az storage blob list \
-    --account-name $AZURE_STORAGE_ACCOUNT \
-    --account-key $AZURE_STORAGE_KEY \
-    --container-name $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
-    --query "[?ends_with(name, '.json.gz')].name" \
-    --output tsv)
-
 # Loop through all json files and change content encoding to gzip and content type to application/json
 function change_content_encoding() {
+    # Change file name ending from .json.gz to .json
+    new_file_name=$(echo "$1" | sed 's/\.json\.gz$/.json/')
+    azcopy copy "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$1?$sas" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$new_file_name?$sas"
+
+    # Delete old file
+    azcopy remove "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$1?$sas"
+    
     # Change content encoding to gzip and content type to application/json
+    # Change content encoding of the file to gzip and content type to application/json
     az storage blob update \
         --account-name $AZURE_STORAGE_ACCOUNT \
         --account-key $AZURE_STORAGE_KEY \
-        --container-name $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
-        --name $1 \
+        --container $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
+        --name $new_file_name \
         --content-encoding gzip \
         --content-type application/json
-
-    # Change file name ending from .json.gz to .json
-    new_file_name=$(echo "$1" | sed 's/\.json\.gz$/.json/')
-    az storage blob copy start-batch \
-        --destination-container $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
-        --destination-blob $new_file_name \
-        --destination-blob-type Detect \
-        --source-container $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
-        --source-blob $1 \
-        --account-name $AZURE_STORAGE_ACCOUNT \
-        --account-key $AZURE_STORAGE_KEY
-
-    # Delete old file
-    az storage blob delete \
-        --account-name $AZURE_STORAGE_ACCOUNT \
-        --account-key $AZURE_STORAGE_KEY \
-        --container-name $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
-        --name $1
 
     echo "Changed content encoding of $1 to gzip and content type to application/json"
 }
