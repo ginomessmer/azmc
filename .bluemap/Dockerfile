@@ -10,6 +10,7 @@ ENV AZURE_LOGIN_TYPE managed-identity
 # Copy config
 COPY config /app/config
 VOLUME /app/config
+VOLUME /app/web
 
 # Install curl
 RUN apt-get update && apt-get install -y curl
