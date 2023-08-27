@@ -30,6 +30,24 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
   }
 }
 
+// resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+//   name: '${containerEnvironmentName}-diag'
+//   scope: containerEnvironment
+//   properties: {
+//     workspaceId: workspace.id
+//     logs: [
+//       {
+//         category: 'ContainerAppConsoleLogs'
+//         enabled: true
+//       }
+//       {
+//         category: 'ContainerAppSystemLogs'
+//         enabled: true
+//       }
+//     ]
+//   }
+// }
+
 // Container Job for renderer
 resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = {
   name: rendererContainerJobName
@@ -57,6 +75,10 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = {
               name: 'AZURE_STORAGE_ACCOUNT'
               value: renderingStorageAccountName
             }
+            {
+              name: 'AZURE_LOGIN_TYPE'
+              value: 'managed-identity'
+            }
           ]
           resources: {
             cpu: 2
@@ -65,5 +87,20 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = {
         }
       ]
     }
+  }
+}
+
+// Assign roles to container job
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+  name: renderingStorageAccountName
+}
+
+resource storageKeyOperatorServiceRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid('81a9662b-bebf-436f-a333-f67b29880f12', rendererContainerJob.id)
+  scope: storageAccount
+  properties: {
+    principalId: rendererContainerJob.identity.principalId
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '81a9662b-bebf-436f-a333-f67b29880f12')
+    principalType: 'ServicePrincipal'
   }
 }

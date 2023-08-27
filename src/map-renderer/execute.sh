@@ -48,6 +48,7 @@ fi
 
 # Managed identity login
 if [ "$AZURE_LOGIN_TYPE" = "managed-identity" ]; then
+    export APPSETTING_WEBSITE_SITE_NAME=DUMMY # Workaround as per https://github.com/Azure/azure-cli/issues/22677
     az login --identity
 fi
 
