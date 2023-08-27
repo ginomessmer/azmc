@@ -18,10 +18,13 @@ param cpuCores int = 2
 @description('Enable autostop of the server when no players are online.')
 param isAutostopEnabled string = 'TRUE'
 
+// Log Analytics settings
+param workspaceName string
+
 var serverMountPath = '/data'
 var serverType = 'SPIGOT'
 
-var containerGroupName = '${projectName}-cg'
+var containerGroupName = '${projectName}-server-cg'
 
 // Container settings
 var minecraftContainer = {
@@ -81,19 +84,41 @@ var minecraftContainerVolume = {
   }
 }
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' existing = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
   name: serverStorageAccountName
+}
+
+resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
+  name: workspaceName
 }
 
 resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01' = {
   name: containerGroupName
+  location: location
   properties: {
+    osType: 'Linux'
     containers: [
       minecraftContainer
     ]
     volumes: [
       minecraftContainerVolume
     ]
-    osType: 'Linux'
+    restartPolicy: 'OnFailure'
+    diagnostics: {
+      logAnalytics: {
+        workspaceId: workspace.properties.customerId
+        workspaceKey: workspace.listKeys().primarySharedKey
+      }
+    }
+    ipAddress: {
+      type: 'Public'
+      dnsNameLabel: projectName
+      ports: [
+        {
+          protocol: 'TCP'
+          port: 25565
+        }
+      ]
+    }
   }
 }

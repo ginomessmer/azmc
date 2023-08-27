@@ -1,16 +1,33 @@
 param location string
 param projectName string
+
 param renderingStorageAccountName string
+param workspaceName string
 
 var containerEnvironmentName = '${projectName}-ce'
 var rendererContainerJobName = '${projectName}-renderer-job'
 
-var renderingContainerImage = ''
+var renderingContainerImage = 'ghcr.io/ginomessmer/azmc/map-renderer:main'
+
+// Dependencies
+resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
+  name: workspaceName
+}
 
 // Container Environment
 resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
   name: containerEnvironmentName
   location: location
+
+  properties: {
+    appLogsConfiguration: {
+      destination: 'log-analytics'
+      logAnalyticsConfiguration: {
+        customerId: workspace.properties.customerId
+        sharedKey: listKeys(workspace.id, workspace.apiVersion).primarySharedKey
+      }
+    }
+  }
 }
 
 // Container Job for renderer
@@ -21,6 +38,7 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = {
     type: 'SystemAssigned'
   }
   properties: {
+    environmentId: containerEnvironment.id
     configuration: {
       replicaTimeout: 1800
       triggerType: 'schedule'
@@ -32,6 +50,7 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = {
     template: {
       containers: [
         {
+          name: 'renderer'
           image: renderingContainerImage
           env: [
             {
@@ -39,6 +58,10 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = {
               value: renderingStorageAccountName
             }
           ]
+          resources: {
+            cpu: 2
+            memory: '4.0Gi'
+          }
         }
       ]
     }
