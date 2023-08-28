@@ -108,3 +108,5 @@ resource storageKeyOperatorServiceRoleAssignment 'Microsoft.Authorization/roleAs
     principalType: 'ServicePrincipal'
   }
 }
+
+output containerEnvironmentName string = containerEnvironment.name

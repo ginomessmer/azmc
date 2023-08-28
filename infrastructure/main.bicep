@@ -24,7 +24,7 @@ module server 'modules/server.bicep' = {
   }
 }
 
-module rendering 'modules/renderer.bicep' = {
+module renderer 'modules/renderer.bicep' = {
   dependsOn: [
     storage
     server
@@ -44,5 +44,18 @@ module logs 'modules/logs.bicep' = {
   params: {
     location: location
     projectName: projectName
+  }
+}
+
+module dashboards 'dashboards/default.bicep' = {
+  name: 'dashboards'
+  params: {
+    location: location
+    projectName: projectName
+
+    logAnalyticsWorkspaceName: logs.outputs.workspaceName
+    managedEnvironmentName: renderer.outputs.containerEnvironmentName
+    serverContainerGroupName: server.outputs.containerGroupName
+    storageAccountName: storage.outputs.storageAccountName
   }
 }

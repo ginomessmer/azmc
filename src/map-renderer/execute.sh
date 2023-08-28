@@ -13,27 +13,27 @@ set -e
 
 # Check if required environment variables are set
 if [ -z "$AZURE_STORAGE_ACCOUNT" ]; then
-    echo "AZURE_STORAGE_ACCOUNT is not set. This is the name of the Azure Storage Account where the Minecraft server files are stored."
+    echo "/!\ AZURE_STORAGE_ACCOUNT is not set. This is the name of the Azure Storage Account where the Minecraft server files are stored."
     exit 1
 fi
 
 if [ -z "$AZURE_STORAGE_SHARE_MC_SERVER" ]; then
-    echo "AZURE_STORAGE_SHARE_MC_SERVER is not set. This is the name of the Azure File Share where the Minecraft server files can be found."
+    echo "/!\ AZURE_STORAGE_SHARE_MC_SERVER is not set. This is the name of the Azure File Share where the Minecraft server files can be found."
     exit 1
 fi
 
 if [ -z "$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT" ]; then
-    echo "AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT is not set. This is the name of the Azure Blob Storage container where the BlueMap output should be uploaded to."
+    echo "/!\ AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT is not set. This is the name of the Azure Blob Storage container where the BlueMap output should be uploaded to."
     exit 1
 fi
 
 if [ -z "$AZURE_LOGIN_TYPE" ]; then
-    echo "AZURE_LOGIN_TYPE is not set. Available options: service-principal, interactive, managed-identity"
+    echo "/!\ AZURE_LOGIN_TYPE is not set. Available options: service-principal, interactive, managed-identity"
     exit 1
 fi
 
 # Log into Azure CLI
-echo "Logging in to Azure CLI using $AZURE_LOGIN_TYPE"
+echo "=> Logging in to Azure CLI using $AZURE_LOGIN_TYPE"
 
 # Service principal login
 if [ "$AZURE_LOGIN_TYPE" = "service-principal" ]; then
@@ -52,17 +52,17 @@ if [ "$AZURE_LOGIN_TYPE" = "managed-identity" ]; then
     az login --identity
 fi
 
-echo "Logged in to Azure CLI"
+echo "=> Logged in to Azure CLI"
 
 # Get Azure Storage Account Key
 AZURE_STORAGE_KEY=$(az storage account keys list --account-name $AZURE_STORAGE_ACCOUNT -g $AZURE_STORAGE_ACCOUNT_RG_NAME --query "[0].value" -o tsv)
 
 # Determine date from now and add one hour for SAS token expiry
 expiry=$(date -u -d "1 hour" '+%Y-%m-%dT%H:%MZ')
-echo "SAS token expiry: $expiry"
+echo "=> SAS token expiry: $expiry"
 
 # Generate SAS read-only token for the Azure File Share
-echo "Generating SAS token for Azure File Share $AZURE_STORAGE_SHARE_MC_SERVER"
+echo "=> Generating SAS token for Azure File Share $AZURE_STORAGE_SHARE_MC_SERVER"
 sas=$(az storage share generate-sas \
     --account-name $AZURE_STORAGE_ACCOUNT \
     --account-key $AZURE_STORAGE_KEY \
@@ -72,27 +72,27 @@ sas=$(az storage share generate-sas \
     --https-only \
     --output tsv)
 
-echo "SAS token generated"
+echo "=> SAS token generated"
 
 # Download directory from Azure File Share
-echo "Downloading directory from Azure File Share $AZURE_STORAGE_SHARE_MC_SERVER"
+echo "=> Downloading directory from Azure File Share $AZURE_STORAGE_SHARE_MC_SERVER"
 mkdir -p /download/fs
 azcopy copy "https://$AZURE_STORAGE_ACCOUNT.file.core.windows.net/$AZURE_STORAGE_SHARE_MC_SERVER?$sas" "/download/fs" --recursive --check-md5 LogOnly
 mv /download/fs/server/world /app/world
 
-echo "Directory downloaded"
+echo "=> Directory downloaded"
 
 # Run Bluemap
-echo "Running Bluemap"
+echo "=> Running Bluemap"
 java -jar /app/cli.jar -r
 
-echo "Bluemap finished rendering"
+echo "=> Bluemap finished rendering"
 
 # Upload directory to Azure Blob Storage
-echo "Uploading Bluemap web files to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
+echo "=> Uploading Bluemap web files to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
 
 # Generate new SAS for Azure Blob Storage
-echo "Generating SAS token for Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
+echo "=> Generating SAS token for Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
 # Set new expiration to 12 hours
 expiry=$(date -u -d "12 hours" '+%Y-%m-%dT%H:%MZ')
 sas=$(az storage container generate-sas \
@@ -105,18 +105,18 @@ sas=$(az storage container generate-sas \
     --output tsv)
 
 # Upload directory to Azure Blob Storage
-echo "Uploading Bluemap output to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
-azcopy copy "/app/web/" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT?$sas" --recursive --mirror-mode true
+echo "=> Uploading Bluemap output to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
+azcopy sync "/app/web/" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT?$sas" --recursive --mirror-mode
 
-echo "Bluemap output uploaded"
+echo "=> Bluemap output uploaded"
 
 # Change content encoding of all json files to gzip and content type to application/json in blob container
-echo "Changing content encoding of all json files to gzip in blob container $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
+echo "=> Changing content encoding of all json files to gzip in blob container $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
 
 # Loop through all json files and change content encoding to gzip and content type to application/json
 function change_content_encoding() {
     # Change file name ending from .json.gz to .json
-    new_file_name=$(echo "$1" | sed 's/\.json\.gz$/.json/')
+    new_file_name=$(echo "=> $1" | sed 's/\.json\.gz$/.json/')
     azcopy copy "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$1?$sas" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$new_file_name?$sas" --log-level WARNING
 
     # Delete old file
@@ -131,7 +131,7 @@ function change_content_encoding() {
         --content-encoding gzip \
         --content-type application/json
 
-    echo "Changed content encoding of $1 to gzip and content type to application/json"
+    echo "=> Changed content encoding of $1 to gzip and content type to application/json"
 }
 
 # Get list of all json files
@@ -148,7 +148,7 @@ for file in $json_files; do
 done
 wait
 
-echo "Content encoding changed"
+echo "=> Content encoding changed"
 
-echo "Done!"
-echo "Web map can be accessed at https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/web/index.html"
+echo "=> Done!"
+echo "=> Web map can be accessed at https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/web/index.html"
