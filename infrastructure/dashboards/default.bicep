@@ -11,13 +11,23 @@ resource logAnalyticsWorkspace 'Microsoft.Insights/workbooks@2022-04-01' existin
   name: logAnalyticsWorkspaceName
 }
 
-resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
+param managedEnvironmentName string
+resource managedEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
+  name: managedEnvironmentName
+}
+
+param storageAccountName string
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+  name: storageAccountName
+}
+
+resource azmcdev_db 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
   properties: {
-    lenses: {
-      '0': {
+    lenses: [
+      {
         order: 0
-        parts: {
-          '0': {
+        parts: [
+          {
             position: {
               x: 0
               y: 0
@@ -47,7 +57,7 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
               deepLink: '#@messmer.de.com/resource${serverContainerGroup.id}/overview'
             }
           }
-          '1': {
+          {
             position: {
               x: 2
               y: 0
@@ -163,7 +173,7 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
               }
             }
           }
-          '2': {
+          {
             position: {
               x: 7
               y: 0
@@ -279,7 +289,7 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
               }
             }
           }
-          '3': {
+          {
             position: {
               x: 12
               y: 0
@@ -382,7 +392,7 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
               }
             }
           }
-          '4': {
+          {
             position: {
               x: 20
               y: 0
@@ -397,10 +407,10 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
                 }
               ]
               type: 'Extension/WebsitesExtension/PartType/ContainerAppEnvironmentTile'
-              deepLink: '#@messmer.de.com/resource/subscriptions/dee4f745-656d-4fb6-b53b-d0c55be561fb/resourceGroups/rg-azmc-dev/providers/Microsoft.App/managedEnvironments/azmcdev-ce/containerAppEnvironment'
+              deepLink: '#@messmer.de.com/resource${managedEnvironment.id}/containerAppEnvironment'
             }
           }
-          '5': {
+          {
             position: {
               x: 22
               y: 0
@@ -500,7 +510,7 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
               }
             }
           }
-          '6': {
+          {
             position: {
               x: 2
               y: 4
@@ -638,7 +648,7 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
               }
             }
           }
-          '7': {
+          {
             position: {
               x: 7
               y: 4
@@ -654,7 +664,7 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
                       metrics: [
                         {
                           resourceMetadata: {
-                            id: '/subscriptions/dee4f745-656d-4fb6-b53b-d0c55be561fb/resourceGroups/rg-azmc-dev/providers/Microsoft.Storage/storageAccounts/azmcdevsa'
+                            id: storageAccount.id
                           }
                           name: 'Egress'
                           aggregationType: 1
@@ -665,7 +675,7 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
                         }
                         {
                           resourceMetadata: {
-                            id: '/subscriptions/dee4f745-656d-4fb6-b53b-d0c55be561fb/resourceGroups/rg-azmc-dev/providers/Microsoft.Storage/storageAccounts/azmcdevsa'
+                            id: storageAccount.id
                           }
                           name: 'Ingress'
                           aggregationType: 1
@@ -719,7 +729,7 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
                       metrics: [
                         {
                           resourceMetadata: {
-                            id: '/subscriptions/dee4f745-656d-4fb6-b53b-d0c55be561fb/resourceGroups/rg-azmc-dev/providers/Microsoft.Storage/storageAccounts/azmcdevsa'
+                            id: storageAccount.id
                           }
                           name: 'Egress'
                           aggregationType: 1
@@ -730,7 +740,7 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
                         }
                         {
                           resourceMetadata: {
-                            id: '/subscriptions/dee4f745-656d-4fb6-b53b-d0c55be561fb/resourceGroups/rg-azmc-dev/providers/Microsoft.Storage/storageAccounts/azmcdevsa'
+                            id: storageAccount.id
                           }
                           name: 'Ingress'
                           aggregationType: 1
@@ -776,9 +786,9 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2015-08-01-preview' = {
               }
             }
           }
-        }
+        ]
       }
-    }
+    ]
     metadata: {
       model: {
         timeRange: {
