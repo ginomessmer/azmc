@@ -93,6 +93,8 @@ echo "Uploading Bluemap web files to Azure Blob Storage $AZURE_STORAGE_CONTAINER
 
 # Generate new SAS for Azure Blob Storage
 echo "Generating SAS token for Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
+# Set new expiration to 12 hours
+expiry=$(date -u -d "12 hours" '+%Y-%m-%dT%H:%MZ')
 sas=$(az storage container generate-sas \
     --account-name $AZURE_STORAGE_ACCOUNT \
     --account-key $AZURE_STORAGE_KEY \
@@ -104,7 +106,7 @@ sas=$(az storage container generate-sas \
 
 # Upload directory to Azure Blob Storage
 echo "Uploading Bluemap output to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
-azcopy copy "/app/web/" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT?$sas" --recursive
+azcopy copy "/app/web/" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT?$sas" --recursive --mirror-mode true
 
 echo "Bluemap output uploaded"
 
@@ -115,12 +117,11 @@ echo "Changing content encoding of all json files to gzip in blob container $AZU
 function change_content_encoding() {
     # Change file name ending from .json.gz to .json
     new_file_name=$(echo "$1" | sed 's/\.json\.gz$/.json/')
-    azcopy copy "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$1?$sas" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$new_file_name?$sas"
+    azcopy copy "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$1?$sas" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$new_file_name?$sas" --log-level WARNING
 
     # Delete old file
-    azcopy remove "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$1?$sas"
-    
-    # Change content encoding to gzip and content type to application/json
+    azcopy remove "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$1?$sas" --log-level WARNING
+
     # Change content encoding of the file to gzip and content type to application/json
     az storage blob update \
         --account-name $AZURE_STORAGE_ACCOUNT \
