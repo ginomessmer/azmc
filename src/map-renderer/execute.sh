@@ -1,5 +1,8 @@
 #!/bin/bash
 set -e
+export AZCOPY_BUFFER_GB=2
+
+trap 'echo "Exiting"' SIGTERM
 
 # Required environment variables:
 # - AZURE_STORAGE_ACCOUNT:                                                                      The name of the Azure Storage Account where the Minecraft server files are stored.
@@ -105,8 +108,15 @@ sas=$(az storage container generate-sas \
     --output tsv)
 
 # Upload directory to Azure Blob Storage
-echo "=> Uploading Bluemap output to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
-azcopy sync "/app/web/" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT?$sas" --recursive --mirror-mode
+echo "=> Uploading rendered map (1/2) - all uncompressed Bluemap output to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
+azcopy sync "/app/web/" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT?$sas" \
+    --exclude-pattern=*.json.gz --recursive --mirror-mode
+
+# Upload all json files to Azure Blob Storage
+echo "=> Uploading rendered map (2/2) -- all compressed output files to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
+azcopy copy "/app/web/" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT?$sas" \
+    --include-pattern=*.json.gz --recursive \
+    --content-encoding=gzip --content-type=application/json
 
 echo "=> Bluemap output uploaded"
 
@@ -116,20 +126,12 @@ echo "=> Changing content encoding of all json files to gzip in blob container $
 # Loop through all json files and change content encoding to gzip and content type to application/json
 function change_content_encoding() {
     # Change file name ending from .json.gz to .json
-    new_file_name=$(echo "=> $1" | sed 's/\.json\.gz$/.json/')
-    azcopy copy "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$1?$sas" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$new_file_name?$sas" --log-level WARNING
+    new_file_name=$(echo $1 | sed 's/\.json\.gz$/.json/')
+    azcopy copy "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$1?$sas" \
+        "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$new_file_name?$sas" --log-level=WARNING
 
     # Delete old file
-    azcopy remove "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$1?$sas" --log-level WARNING
-
-    # Change content encoding of the file to gzip and content type to application/json
-    az storage blob update \
-        --account-name $AZURE_STORAGE_ACCOUNT \
-        --account-key $AZURE_STORAGE_KEY \
-        --container $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
-        --name $new_file_name \
-        --content-encoding gzip \
-        --content-type application/json
+    azcopy remove "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/$1?$sas" --log-level=WARNING
 
     echo "=> Changed content encoding of $1 to gzip and content type to application/json"
 }
@@ -142,6 +144,8 @@ json_files=$(az storage blob list \
     --query "[?ends_with(name, '.json.gz')].name" \
     --output tsv)
 
+echo "=> Found $(echo "$json_files" | wc -l) JSON files marked as compressed"
+
 # Loop through all json files and change content encoding to gzip and content type to application/json
 for file in $json_files; do
     change_content_encoding $file &
@@ -150,5 +154,5 @@ wait
 
 echo "=> Content encoding changed"
 
-echo "=> Done!"
+echo "\o/ Done!"
 echo "=> Web map can be accessed at https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT/web/index.html"
