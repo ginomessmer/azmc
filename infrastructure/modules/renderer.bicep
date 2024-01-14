@@ -4,7 +4,7 @@ param projectName string
 param renderingStorageAccountName string
 param workspaceName string
 
-var containerEnvironmentName = '${projectName}-ce'
+var containerEnvironmentName = 'cae-${projectName}'
 var rendererContainerJobName = '${projectName}-renderer-job'
 
 var renderingContainerImage = 'ghcr.io/ginomessmer/azmc/map-renderer:main'

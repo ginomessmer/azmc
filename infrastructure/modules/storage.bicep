@@ -3,7 +3,7 @@ param skuName string = 'Standard_LRS'
 
 param projectName string
 
-var storageAccountName = '${projectName}sa'
+var storageAccountName = 'st${projectName}'
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: storageAccountName

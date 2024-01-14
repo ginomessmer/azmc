@@ -24,7 +24,7 @@ param workspaceName string
 var serverMountPath = '/data'
 var serverType = 'SPIGOT'
 
-var containerGroupName = '${projectName}-server-cg'
+var containerGroupName = 'ci-${projectName}-server'
 
 // Container settings
 var minecraftContainer = {

@@ -1,7 +1,7 @@
 param location string
 param projectName string
 
-var workspaceName = '${projectName}-ws'
+var workspaceName = 'log-${projectName}'
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   name: workspaceName
