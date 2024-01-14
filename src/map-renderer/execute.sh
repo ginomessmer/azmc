@@ -77,7 +77,7 @@ sas=$(az storage share generate-sas \
 
 echo "=> SAS token generated"
 
-# Download directory from Azure File Share
+# Download world directory from Azure File Share
 echo "=> Downloading directory from Azure File Share $AZURE_STORAGE_SHARE_MC_SERVER"
 mkdir -p /download/fs
 azcopy copy "https://$AZURE_STORAGE_ACCOUNT.file.core.windows.net/$AZURE_STORAGE_SHARE_MC_SERVER?$sas" "/download/fs" --recursive --check-md5 LogOnly
