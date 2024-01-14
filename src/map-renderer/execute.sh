@@ -77,13 +77,28 @@ sas=$(az storage share generate-sas \
 
 echo "=> SAS token generated"
 
-# Download world directory from Azure File Share
-echo "=> Downloading directory from Azure File Share $AZURE_STORAGE_SHARE_MC_SERVER"
+# Download directory from Azure File Share
+echo "=> Downloading (1/2) :: server from Azure File Share $AZURE_STORAGE_SHARE_MC_SERVER"
 mkdir -p /download/fs
-azcopy copy "https://$AZURE_STORAGE_ACCOUNT.file.core.windows.net/$AZURE_STORAGE_SHARE_MC_SERVER?$sas" "/download/fs" --recursive --check-md5 LogOnly
-mv /download/fs/server/world /app/world
+azcopy copy "https://$AZURE_STORAGE_ACCOUNT.file.core.windows.net/$AZURE_STORAGE_SHARE_MC_SERVER?$sas" "/tmp" --recursive --check-md5=LogOnly
+mv /tmp/server/world /app/world
 
-echo "=> Directory downloaded"
+echo "=> Server downloaded"
+
+# Generate SAS read-only token for the Azure Blob Storage
+echo "=> Generating SAS token for Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
+sas=$(az storage container generate-sas \
+    --account-name $AZURE_STORAGE_ACCOUNT \
+    --account-key $AZURE_STORAGE_KEY \
+    --name $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT \
+    --expiry $expiry \
+    --permissions rl \
+    --https-only \
+    --output tsv)
+
+# Download map to accelerate rendering
+echo "=> Downloading (2/2) :: previous map rendering from Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
+azcopy copy "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT?$sas" "/app/web" --recursive --check-md5=LogOnly --as-subdir=false
 
 # Run Bluemap
 echo "=> Running Bluemap"
@@ -108,12 +123,12 @@ sas=$(az storage container generate-sas \
     --output tsv)
 
 # Upload directory to Azure Blob Storage
-echo "=> Uploading rendered map (1/2) - all uncompressed Bluemap output to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
+echo "=> Uploading rendered map (1/2) :: all uncompressed Bluemap output to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
 azcopy sync "/app/web/" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT?$sas" \
     --exclude-pattern=*.json.gz --recursive --mirror-mode
 
 # Upload all json files to Azure Blob Storage
-echo "=> Uploading rendered map (2/2) -- all compressed output files to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
+echo "=> Uploading rendered map (2/2) :: all compressed output files to Azure Blob Storage $AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT"
 azcopy copy "/app/web/" "https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$AZURE_STORAGE_CONTAINER_BLUEMAP_OUTPUT?$sas" \
     --include-pattern=*.json.gz --recursive \
     --content-encoding=gzip --content-type=application/json

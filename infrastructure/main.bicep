@@ -1,6 +1,12 @@
 param location string = resourceGroup().location
 param projectName string = 'azmc'
 
+@description('Deploy the built-in Azure Portal dashboards.')
+param deployDashboard bool = true
+
+@description('Deploy the map renderer module (PREVIEW).')
+param deployRenderer bool = false
+
 module storage 'modules/storage.bicep' = {
   name: 'storage'
   params: {
@@ -24,7 +30,15 @@ module server 'modules/server.bicep' = {
   }
 }
 
-module renderer 'modules/renderer.bicep' = {
+module logs 'modules/logs.bicep' = {
+  name: 'logs'
+  params: {
+    location: location
+    projectName: projectName
+  }
+}
+
+module renderer 'modules/renderer.bicep' = if(deployRenderer) {
   dependsOn: [
     storage
     server
@@ -39,15 +53,7 @@ module renderer 'modules/renderer.bicep' = {
   }
 }
 
-module logs 'modules/logs.bicep' = {
-  name: 'logs'
-  params: {
-    location: location
-    projectName: projectName
-  }
-}
-
-module dashboards 'dashboards/default.bicep' = {
+module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
   name: 'dashboards'
   params: {
     location: location
