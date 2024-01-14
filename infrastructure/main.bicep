@@ -4,8 +4,8 @@ param projectName string = 'azmc'
 @description('Deploy the built-in Azure Portal dashboards.')
 param deployDashboard bool = true
 
-@description('Deploy the map renderer module.')
-param deployRenderer bool = true
+@description('Deploy the map renderer module (PREVIEW).')
+param deployRenderer bool = false
 
 module storage 'modules/storage.bicep' = {
   name: 'storage'
