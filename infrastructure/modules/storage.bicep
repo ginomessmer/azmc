@@ -3,7 +3,7 @@ param skuName string = 'Standard_LRS'
 
 param projectName string
 
-var storageAccountName = 'st${projectName}'
+var storageAccountName = 'st${replace(projectName, '-', '')}'
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: storageAccountName
@@ -12,6 +12,11 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
     name: skuName
   }
   kind: 'StorageV2'
+  properties: {
+    minimumTlsVersion: 'TLS1_2'
+    allowBlobPublicAccess: false
+    supportsHttpsTrafficOnly: true
+  }
 }
 
 // Server file share

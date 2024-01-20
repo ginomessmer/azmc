@@ -1,6 +1,8 @@
 param location string
 param projectName string
 
+param deployRendererJob bool
+
 param renderingStorageAccountName string
 param workspaceName string
 
@@ -49,7 +51,7 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
 // }
 
 // Container Job for renderer
-resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = {
+resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = if (deployRendererJob) {
   name: rendererContainerJobName
   location: location
   identity: {

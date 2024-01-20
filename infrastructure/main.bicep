@@ -1,5 +1,5 @@
 param location string = resourceGroup().location
-param projectName string = 'azmc'
+param name string = 'azmc'
 
 @description('Deploy the built-in Azure Portal dashboards.')
 param deployDashboard bool = true
@@ -11,7 +11,7 @@ module storage 'modules/storage.bicep' = {
   name: 'storage'
   params: {
     location: location
-    projectName: projectName
+    projectName: name
   }
 }
 
@@ -23,7 +23,7 @@ module server 'modules/server.bicep' = {
   ]
   params: {
     location: location
-    projectName: projectName
+    projectName: name
     serverShareName: storage.outputs.serverFileShareName
     serverStorageAccountName: storage.outputs.storageAccountName
     workspaceName: logs.outputs.workspaceName
@@ -34,11 +34,11 @@ module logs 'modules/logs.bicep' = {
   name: 'logs'
   params: {
     location: location
-    projectName: projectName
+    projectName: name
   }
 }
 
-module renderer 'modules/renderer.bicep' = if(deployRenderer) {
+module renderer 'modules/renderer.bicep' = {
   dependsOn: [
     storage
     server
@@ -47,9 +47,10 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
   name: 'rendering'
   params: {
     location: location
-    projectName: projectName
+    projectName: name
     renderingStorageAccountName: storage.outputs.storageAccountName
     workspaceName: logs.outputs.workspaceName
+    deployRendererJob: deployRenderer
   }
 }
 
@@ -57,7 +58,7 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
   name: 'dashboards'
   params: {
     location: location
-    projectName: projectName
+    projectName: name
 
     logAnalyticsWorkspaceName: logs.outputs.workspaceName
     managedEnvironmentName: renderer.outputs.containerEnvironmentName
