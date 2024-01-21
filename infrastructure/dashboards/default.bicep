@@ -11,9 +11,9 @@ resource logAnalyticsWorkspace 'Microsoft.Insights/workbooks@2022-04-01' existin
   name: logAnalyticsWorkspaceName
 }
 
-param managedEnvironmentName string
-resource managedEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
-  name: managedEnvironmentName
+param managedEnvironmentName string?
+resource managedEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = if(managedEnvironmentName != null) {
+  name: managedEnvironmentName!
 }
 
 param storageAccountName string
@@ -392,7 +392,7 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
               }
             }
           }
-          {
+          managedEnvironmentName == null ? {} : {
             position: {
               x: 20
               y: 0

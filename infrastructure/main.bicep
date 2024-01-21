@@ -7,8 +7,9 @@ param deployDashboard bool = true
 @description('Deploy the map renderer module (PREVIEW).')
 param deployRenderer bool = false
 
-module storage 'modules/storage.bicep' = {
-  name: 'storage'
+// Server
+module storageServer 'modules/storage-server.bicep' = {
+  name: 'storageServer'
   params: {
     location: location
     projectName: name
@@ -18,14 +19,14 @@ module storage 'modules/storage.bicep' = {
 module server 'modules/server.bicep' = {
   name: 'server'
   dependsOn: [
-    storage
+    storageServer
     logs
   ]
   params: {
     location: location
     projectName: name
-    serverShareName: storage.outputs.serverFileShareName
-    serverStorageAccountName: storage.outputs.storageAccountName
+    serverStorageAccountName: storageServer.outputs.storageAccountServerName
+    serverShareName: storageServer.outputs.storageAccountFileShareServerName
     workspaceName: logs.outputs.workspaceName
   }
 }
@@ -38,9 +39,18 @@ module logs 'modules/logs.bicep' = {
   }
 }
 
-module renderer 'modules/renderer.bicep' = {
+// Renderer
+module storageRenderer 'modules/storage-map.bicep' = if(deployRenderer) {
+  name: 'storageRenderer'
+  params: {
+    location: location
+    projectName: name
+  }
+}
+
+module renderer 'modules/renderer.bicep' = if(deployRenderer) {
   dependsOn: [
-    storage
+    storageRenderer
     server
     logs
   ]
@@ -48,7 +58,7 @@ module renderer 'modules/renderer.bicep' = {
   params: {
     location: location
     projectName: name
-    renderingStorageAccountName: storage.outputs.storageAccountName
+    renderingStorageAccountName: storageRenderer.outputs.storageAccountPublicMapName
     workspaceName: logs.outputs.workspaceName
     deployRendererJob: deployRenderer
   }
@@ -63,6 +73,6 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
     logAnalyticsWorkspaceName: logs.outputs.workspaceName
     managedEnvironmentName: renderer.outputs.containerEnvironmentName
     serverContainerGroupName: server.outputs.containerGroupName
-    storageAccountName: storage.outputs.storageAccountName
+    storageAccountName: storageServer.outputs.storageAccountServerName
   }
 }
