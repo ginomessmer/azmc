@@ -18,6 +18,9 @@ param cpuCores int = 2
 @description('Enable autostop of the server when no players are online.')
 param isAutostopEnabled string = 'TRUE'
 
+@description('Accept the Minecraft EULA.')
+param acceptEula bool
+
 // Log Analytics settings
 param workspaceName string
 
@@ -39,7 +42,7 @@ var minecraftContainer = {
     environmentVariables: [
       {
         name: 'EULA'
-        value: 'true'
+        value: acceptEula
       }
       {
         name: 'TYPE'

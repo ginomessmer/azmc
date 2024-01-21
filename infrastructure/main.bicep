@@ -1,6 +1,10 @@
 param location string = resourceGroup().location
 param name string = 'azmc'
 
+@description('Accept the Minecraft Server EULA.')
+@allowed([true])
+param acceptEula bool
+
 @description('Deploy the built-in Azure Portal dashboards.')
 param deployDashboard bool = true
 
@@ -24,6 +28,7 @@ module server 'modules/server.bicep' = {
   ]
   params: {
     location: location
+    acceptEula: acceptEula
     projectName: name
     serverStorageAccountName: storageServer.outputs.storageAccountServerName
     serverShareName: storageServer.outputs.storageAccountFileShareServerName
