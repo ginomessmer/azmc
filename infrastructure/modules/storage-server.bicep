@@ -1,11 +1,13 @@
 param location string
-param skuName string = 'Standard_LRS'
+param skuName string = 'Standard_ZRS'
 
 param projectName string
 
 var normalizedProjectName = replace(projectName, '-', '')
 var storageAccountName = 'st${normalizedProjectName}'
 var storageAccountNameServer = '${storageAccountName}server'
+
+var serverFileShareName = 'server'
 
 // Server container
 resource storageAccountServer 'Microsoft.Storage/storageAccounts@2023-01-01' = {
@@ -32,7 +34,7 @@ resource storageAccountServer 'Microsoft.Storage/storageAccounts@2023-01-01' = {
     }
 
     resource serverFileShare 'shares' = {
-      name: 'server'
+      name: serverFileShareName
       properties: {
         accessTier: 'Hot'
         shareQuota: 256
@@ -59,6 +61,7 @@ resource serverFileShareLock 'Microsoft.Authorization/locks@2020-05-01' = {
     notes: 'This lock is to prevent accidental deletion of the server file share. This file share contains the server files. Managed by azmc.'
   }
 }
+
 
 output storageAccountServerResourceId string = storageAccountServer.id
 output storageAccountServerName string = storageAccountServer.name
