@@ -47,7 +47,7 @@ resource storageAccountLock 'Microsoft.Authorization/locks@2020-05-01' = {
   scope: storageAccountServer
   properties: {
     level: 'CanNotDelete'
-    notes: 'This lock is to prevent accidental deletion of the storage account. THis storage account contains the server files. Managed by azmc.'
+    notes: 'This lock is to prevent accidental deletion of the storage account. This storage account contains the server files. Managed by azmc.'
   }
 }
 

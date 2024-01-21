@@ -11,6 +11,7 @@ resource logAnalyticsWorkspace 'Microsoft.Insights/workbooks@2022-04-01' existin
   name: logAnalyticsWorkspaceName
 }
 
+@description('The name of the managed environment to show in the dashboard. Leave empty to hide the tile.')
 param managedEnvironmentName string = ''
 resource managedEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = if(managedEnvironmentName != '') {
   name: managedEnvironmentName!
