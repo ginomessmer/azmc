@@ -11,8 +11,8 @@ resource logAnalyticsWorkspace 'Microsoft.Insights/workbooks@2022-04-01' existin
   name: logAnalyticsWorkspaceName
 }
 
-param managedEnvironmentName string?
-resource managedEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = if(managedEnvironmentName != null) {
+param managedEnvironmentName string = ''
+resource managedEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = if(managedEnvironmentName != '') {
   name: managedEnvironmentName!
 }
 
@@ -21,7 +21,12 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing 
   name: storageAccountName
 }
 
-resource azmcdev_db 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
+resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
+  name: 'dbrd-${projectName}'
+  location: location
+  tags: {
+    'hidden-title': 'Minecraft Server Dashboard'
+  }
   properties: {
     lenses: [
       {
@@ -828,10 +833,5 @@ resource azmcdev_db 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
         }
       }
     }
-  }
-  name: '${projectName}-db'
-  location: location
-  tags: {
-    'hidden-title': 'azmcdev-db'
   }
 }

@@ -36,5 +36,5 @@ resource storageAccountPublicMap 'Microsoft.Storage/storageAccounts@2023-01-01' 
 
 output storageAccountPublicMapResourceId string = storageAccountPublicMap.id
 output storageAccountPublicMapName string = storageAccountPublicMap.name
-output storageAccountPublicMapContainerName string = storageAccountPublicMap::publicMapBlobServices.name
+output storageAccountPublicMapContainerName string = storageAccountPublicMap::publicMapBlobServices::publicMapContainer.name
 

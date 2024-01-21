@@ -58,7 +58,7 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
   params: {
     location: location
     projectName: name
-    renderingStorageAccountName: storageRenderer.outputs.storageAccountPublicMapName
+    renderingStorageAccountName: deployRenderer ? storageRenderer.outputs.storageAccountPublicMapName : ''
     workspaceName: logs.outputs.workspaceName
     deployRendererJob: deployRenderer
   }
@@ -71,7 +71,7 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
     projectName: name
 
     logAnalyticsWorkspaceName: logs.outputs.workspaceName
-    managedEnvironmentName: renderer.outputs.containerEnvironmentName
+    managedEnvironmentName: deployRenderer ? renderer.outputs.containerEnvironmentName : ''
     serverContainerGroupName: server.outputs.containerGroupName
     storageAccountName: storageServer.outputs.storageAccountServerName
   }
