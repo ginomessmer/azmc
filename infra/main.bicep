@@ -11,6 +11,15 @@ param deployDashboard bool = true
 @description('Deploy the map renderer module (PREVIEW).')
 param deployRenderer bool = false
 
+@description('Deploy the Discord bot module (PREVIEW). Make sure to supply the public key and token.')
+param deployDiscordBot bool = false
+@description('The public key for the Discord bot. Only required if deployDiscordBot is true.')
+@secure()
+param discordBotPublicKey string = ''
+@description('The token for the Discord bot. Only required if deployDiscordBot is true.')
+@secure()
+param discordBotToken string = ''
+
 // Server
 module storageServer 'modules/storage-server.bicep' = {
   name: 'storageServer'
@@ -66,6 +75,23 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
     renderingStorageAccountName: deployRenderer ? storageRenderer.outputs.storageAccountPublicMapName : ''
     workspaceName: logs.outputs.workspaceName
     deployRendererJob: deployRenderer
+  }
+}
+
+module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBotPublicKey != '' && discordBotToken != '') {
+  dependsOn: [
+    server
+    logs
+  ]
+  name: 'discordBot'
+  params: {
+    location: location
+    projectName: name
+
+    workspaceName: logs.outputs.workspaceName
+    minecraftContainerGroupId: server.outputs.containerGroupId
+    discordBotPublicKey: discordBotPublicKey
+    discordBotToken: discordBotToken
   }
 }
 
