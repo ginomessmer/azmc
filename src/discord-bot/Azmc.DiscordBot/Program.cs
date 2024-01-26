@@ -23,6 +23,12 @@ builder.Services.AddLogging();
 
 builder.Services.AddHostedService<BotBackgroundService>();
 
+builder.Services.AddHealthChecks();
+
+
+// App
 var app = builder.Build();
+
+app.MapHealthChecks("/health");
 
 app.Run();
