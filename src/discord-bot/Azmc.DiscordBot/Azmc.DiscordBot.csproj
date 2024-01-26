@@ -15,4 +15,8 @@
     <PackageReference Include="Discord.Net.Rest" Version="3.13.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Modules/" />
+  </ItemGroup>
+
 </Project>
