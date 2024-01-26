@@ -36,7 +36,7 @@ jobs:
         with:
           push: true
           file: ./src/discord-bot/Azmc.DiscordBot/Dockerfile
-          context: ./src/discord-bot/Azmc.DiscordBot
+          context: ./src/discord-bot
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
