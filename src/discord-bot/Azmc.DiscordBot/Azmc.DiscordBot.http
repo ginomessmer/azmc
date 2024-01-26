@@ -1,0 +1,11 @@
+@Azmc.DiscordBot_HostAddress = http://localhost:5231
+
+GET {{Azmc.DiscordBot_HostAddress}}/todos/
+Accept: application/json
+
+###
+
+GET {{Azmc.DiscordBot_HostAddress}}/todos/1
+Accept: application/json
+
+###
