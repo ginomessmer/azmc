@@ -1,6 +1,8 @@
 using Discord.Interactions;
 using Microsoft.Extensions.Options;
 
+namespace Azmc.DiscordBot;
+
 /// <summary>
 /// Represents a background service that handles the bot startup functionality.
 /// </summary>

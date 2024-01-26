@@ -1,4 +1,9 @@
 using System.Net.Mime;
+using Azmc.DiscordBot;
+using Azure.Core;
+using Azure.Identity;
+using Azure.ResourceManager;
+using Azure.ResourceManager.ContainerInstance;
 using Discord.Interactions;
 using Discord.Rest;
 using Microsoft.Extensions.Options;
@@ -14,11 +19,26 @@ builder.Services
 
 // Interaction services
 builder.Services
-    .AddSingleton<InteractionServiceConfig>()
+    .AddSingleton<InteractionServiceConfig>(_ => new()
+    {
+        AutoServiceScopes = true
+    })
     .AddSingleton<InteractionService>();
+
+// Container instance
+builder.Services
+    .AddSingleton<ArmClient>(_ => new(new DefaultAzureCredential()))
+    .AddSingleton<ContainerGroupResource>(services =>
+    {
+        var client = services.GetRequiredService<ArmClient>();
+        var options = services.GetRequiredService<IOptions<AzureOptions>>();
+        var resource = client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ContainerGroupResourceId)).Get();
+        return resource;
+    });
 
 // Configuration
 builder.Services.Configure<BotOptions>(builder.Configuration.GetSection("Bot"));
+builder.Services.Configure<AzureOptions>(builder.Configuration.GetSection("Azure"));
 
 builder.Services.AddLogging();
 

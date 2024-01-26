@@ -1,3 +1,4 @@
+namespace Azmc.DiscordBot;
 
 /// <summary>
 /// Represents the options for the bot.
