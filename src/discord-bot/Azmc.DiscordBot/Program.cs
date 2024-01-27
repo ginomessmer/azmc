@@ -6,6 +6,7 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.ContainerInstance;
 using Discord.Interactions;
 using Discord.Rest;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateSlimBuilder(args);
@@ -68,6 +69,9 @@ app.MapPost("/interactions", async (DiscordRestClient client, InteractionService
             var interaction = await client.ParseHttpInteractionAsync(
                 options.Value.PublicKey, signature, timestamp, body);
 
+            using var scope = app.Logger.BeginScope("Interaction {id}", interaction.Id);
+            app.Logger.LogInformation("Interaction received {type}", interaction.Type);
+
             if (interaction is RestPingInteraction ping)
             {
                 app.Logger.LogInformation("Ping received");
@@ -76,7 +80,7 @@ app.MapPost("/interactions", async (DiscordRestClient client, InteractionService
                 return Results.Content(response, MediaTypeNames.Application.Json, System.Text.Encoding.UTF8, StatusCodes.Status200OK);
             }
 
-
+            app.Logger.LogInformation("Executing command");
             // Stupid hack because it seems that the interaction 
             // response callback won't be awaited when the command is executed
             CancellationTokenSource cts = new();
@@ -84,6 +88,7 @@ app.MapPost("/interactions", async (DiscordRestClient client, InteractionService
             Microsoft.AspNetCore.Http.IResult result = Results.BadRequest("Could not complete command");
             await interactionService.ExecuteCommandAsync(new RestInteractionContext(client, interaction, json =>
             {
+                app.Logger.LogInformation("Command executed");
                 result = Results.Content(json, MediaTypeNames.Application.Json, System.Text.Encoding.UTF8, StatusCodes.Status200OK);
                 cts.Cancel();
                 return Task.CompletedTask;
@@ -93,6 +98,8 @@ app.MapPost("/interactions", async (DiscordRestClient client, InteractionService
             {
                 await Task.Delay(100);
             }
+
+            app.Logger.LogInformation("Answered command");
 
             return result;
         }
