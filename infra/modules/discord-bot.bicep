@@ -18,8 +18,9 @@ param discordBotPublicKey string
 @secure()
 param discordBotToken string
 
+var suffix = '${projectName}-services'
 var containerAppName = 'ca-${projectName}-discord-bot'
-var containerEnvironmentName = 'cae-${projectName}-services'
+var containerEnvironmentName = 'cae-${suffix}'
 
 resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
   name: workspaceName
@@ -38,10 +39,13 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
         sharedKey: listKeys(workspace.id, workspace.apiVersion).primarySharedKey
       }
     }
+    customDomainConfiguration: {
+      dnsSuffix: suffix
+    }
   }
 }
 
-resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
+resource discordBotContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: containerAppName
   location: location
   identity: {
@@ -60,6 +64,11 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
           value: discordBotToken
         }
       ]
+      ingress: {
+        allowInsecure: false
+        external: true
+        targetPort: 80
+      }
     }
     template: {
       containers: [
@@ -80,9 +89,14 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               secretRef: 'bot-token'
             }
           ]
+          resources:{
+            cpu: '0.25'
+            memory: '0.5Gi'
+          }
         }
       ]
     }
   }
-
 }
+
+output containerAppUrl string = discordBotContainerApp.properties.configuration.ingress.fqdn

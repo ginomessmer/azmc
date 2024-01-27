@@ -23,7 +23,7 @@ ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./Azmc.DiscordBot.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=true
 
 # FROM mcr.microsoft.com/dotnet/runtime-deps:8.0 AS final # AOT
-FROM mcr.microsoft.com/dotnet/runtime:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 EXPOSE 8080
 COPY --from=publish /app/publish .
