@@ -20,6 +20,9 @@ param discordBotPublicKey string = ''
 @secure()
 param discordBotToken string = ''
 
+@description('Automatically shut down the server at midnight.')
+param deployAutoShutdown bool = true
+
 // Server
 module storageServer 'modules/storage-server.bicep' = {
   name: 'storageServer'
@@ -106,6 +109,18 @@ module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBo
     discordBotToken: discordBotToken
 
     containerLaunchManagerRoleId: roles.outputs.roleDefinitionContainerLaunchManagerId
+  }
+}
+
+// Auto shutdown
+module autoShutdown 'modules/auto-shutdown.bicep' = if (deployAutoShutdown) {
+  name: 'autoShutdown'
+  params: {
+    location: location
+    projectName: name
+    
+    containerGroupName: server.outputs.containerGroupName
+    roleDefinitionId: roles.outputs.roleDefinitionContainerLaunchManagerId
   }
 }
 
