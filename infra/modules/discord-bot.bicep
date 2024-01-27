@@ -1,8 +1,8 @@
 param location string
 param projectName string
 
-@description('The name of the Log Analytics workspace to use for the bot')
-param workspaceName string
+@description('The ID of the environment that the container app should be deployed to. This is used to deploy the container app.')
+param containerEnvironmentId string
 
 @description('The docker image to use for the bot. This should be a public image. Leave the default value if you don\'t know what this is.')
 param botDockerImage string = 'ghcr.io/ginomessmer/azmc/discord-bot:feature-bot'
@@ -21,34 +21,14 @@ param discordBotToken string
 @description('The role ID of the role that is allowed to launch the container app. This is used to allow the bot to launch the container app.')
 param containerLaunchManagerRoleId string
 
-var suffix = '${projectName}-services'
 var containerAppName = 'ca-${projectName}-discord-bot'
-var containerEnvironmentName = 'cae-${suffix}'
 
-resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
-  name: workspaceName
-}
 
 resource minecraftServerContainerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01' existing = {
   name: minecraftContainerGroupName
 }
 
-// Container Environment
-resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
-  name: containerEnvironmentName
-  location: location
-
-  properties: {
-    appLogsConfiguration: {
-      destination: 'log-analytics'
-      logAnalyticsConfiguration: {
-        customerId: workspace.properties.customerId
-        sharedKey: listKeys(workspace.id, workspace.apiVersion).primarySharedKey
-      }
-    }
-  }
-}
-
+// Container App
 resource discordBotContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: containerAppName
   location: location
@@ -56,7 +36,7 @@ resource discordBotContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
     type: 'SystemAssigned'
   }
   properties: {
-    environmentId: containerEnvironment.id
+    environmentId: containerEnvironmentId
     configuration: {
       secrets: [
         {

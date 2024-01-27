@@ -62,6 +62,15 @@ module storageRenderer 'modules/storage-map.bicep' = if(deployRenderer) {
   }
 }
 
+module containerEnvironment 'modules/container-env.bicep' = {
+  name: 'containerEnvironment'
+  params: {
+    location: location
+    projectName: name
+    workspaceName: logs.outputs.workspaceName
+  }
+}
+
 module renderer 'modules/renderer.bicep' = if(deployRenderer) {
   dependsOn: [
     storageRenderer
@@ -88,7 +97,7 @@ module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBo
     location: location
     projectName: name
 
-    workspaceName: logs.outputs.workspaceName
+    containerEnvironmentId: containerEnvironment.outputs.containerEnvironmentId
     minecraftContainerGroupName: server.outputs.containerGroupName
     discordBotPublicKey: discordBotPublicKey
     discordBotToken: discordBotToken
