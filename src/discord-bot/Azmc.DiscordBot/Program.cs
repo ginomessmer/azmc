@@ -21,7 +21,8 @@ builder.Services
 builder.Services
     .AddSingleton<InteractionServiceConfig>(_ => new()
     {
-        AutoServiceScopes = true
+        AutoServiceScopes = true,
+        LogLevel = Discord.LogSeverity.Debug,
     })
     .AddSingleton<InteractionService>();
 

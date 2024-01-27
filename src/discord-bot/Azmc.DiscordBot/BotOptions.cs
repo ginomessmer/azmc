@@ -23,6 +23,7 @@ public class BotOptions
     /// <summary>
     /// Gets or sets the debug guild ID.
     /// </summary>
+    [Required]
     public ulong DebugGuildId { get; set; }
 #endif
 }

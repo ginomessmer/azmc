@@ -1,4 +1,5 @@
 using Discord.Interactions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Azmc.DiscordBot;
@@ -27,6 +28,22 @@ public class BotBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        _interactionService.Log += (log) =>
+        {
+            var logLevel = log.Severity switch
+            {
+                Discord.LogSeverity.Critical => LogLevel.Critical,
+                Discord.LogSeverity.Error => LogLevel.Error,
+                Discord.LogSeverity.Warning => LogLevel.Warning,
+                Discord.LogSeverity.Info => LogLevel.Information,
+                Discord.LogSeverity.Verbose => LogLevel.Trace,
+                Discord.LogSeverity.Debug => LogLevel.Debug,
+                _ => throw new ArgumentOutOfRangeException(nameof(log.Severity))
+            };
+            _logger.Log(logLevel, log.Exception, "{source} :: {message}", log.Source, log.Message);
+            return Task.CompletedTask;
+        };
+
         using (_logger.BeginScope("Login"))
         {
             _logger.LogInformation("Logging in...");
@@ -45,11 +62,13 @@ public class BotBackgroundService : BackgroundService
         {
             _logger.LogInformation("Registering commands...");
 #if DEBUG
-            await _interactionService.RegisterCommandsToGuildAsync(575985821744627734);
+            await _interactionService.RegisterCommandsToGuildAsync(_options.Value.DebugGuildId);
 #else
             await _interactionService.RegisterCommandsGloballyAsync();
 #endif
             _logger.LogInformation("Registered commands");
         }
+
+        _logger.LogInformation("Ready");
     }
 }

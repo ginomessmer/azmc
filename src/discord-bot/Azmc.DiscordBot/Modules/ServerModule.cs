@@ -16,7 +16,7 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
     }
 
     [SlashCommand("status", "Gets the status of the Minecraft server")]
-    public Task PingAsync()
+    public Task StatusAsync()
     {
         var state = _containerGroupResource.Data.Containers.First().InstanceView.CurrentState.State;
         return RespondAsync(state);
