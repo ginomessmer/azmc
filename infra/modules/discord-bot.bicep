@@ -8,7 +8,7 @@ param workspaceName string
 param botDockerImage string = 'ghcr.io/ginomessmer/azmc/discord-bot:feature-bot'
 
 @description('The resource ID of the container group that runs the Minecraft server. This is used to interact with the server.')
-param minecraftContainerGroupId string
+param minecraftContainerGroupName string
 
 @description('The public key of the Discord bot. This is used to verify that the bot is the one that sent a message.')
 @secure()
@@ -18,12 +18,19 @@ param discordBotPublicKey string
 @secure()
 param discordBotToken string
 
+@description('The role ID of the role that is allowed to launch the container app. This is used to allow the bot to launch the container app.')
+param containerLaunchManagerRoleId string
+
 var suffix = '${projectName}-services'
 var containerAppName = 'ca-${projectName}-discord-bot'
 var containerEnvironmentName = 'cae-${suffix}'
 
 resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
   name: workspaceName
+}
+
+resource minecraftServerContainerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01' existing = {
+  name: minecraftContainerGroupName
 }
 
 // Container Environment
@@ -38,9 +45,6 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
         customerId: workspace.properties.customerId
         sharedKey: listKeys(workspace.id, workspace.apiVersion).primarySharedKey
       }
-    }
-    customDomainConfiguration: {
-      dnsSuffix: suffix
     }
   }
 }
@@ -78,7 +82,7 @@ resource discordBotContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
           env: [
             {
               name: 'Azure__ContainerGroupResourceId'
-              value: minecraftContainerGroupId
+              value: minecraftServerContainerGroup.id
             }
             {
               name: 'Bot__PublicKey'
@@ -96,6 +100,15 @@ resource discordBotContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
         }
       ]
     }
+  }
+}
+
+resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(discordBotContainerApp.id, containerLaunchManagerRoleId)
+  scope: minecraftServerContainerGroup
+  properties: {
+    principalId: discordBotContainerApp.identity.principalId
+    roleDefinitionId: containerLaunchManagerRoleId
   }
 }
 

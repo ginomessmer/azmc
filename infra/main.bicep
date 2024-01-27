@@ -89,10 +89,16 @@ module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBo
     projectName: name
 
     workspaceName: logs.outputs.workspaceName
-    minecraftContainerGroupId: server.outputs.containerGroupId
+    minecraftContainerGroupName: server.outputs.containerGroupName
     discordBotPublicKey: discordBotPublicKey
     discordBotToken: discordBotToken
+
+    containerLaunchManagerRoleId: roles.outputs.roleDefinitionContainerLaunchManagerId
   }
+}
+
+module roles 'modules/roles.bicep' = {
+  name: 'roles'
 }
 
 module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
