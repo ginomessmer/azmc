@@ -113,3 +113,5 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
     storageAccountName: storageServer.outputs.storageAccountServerName
   }
 }
+
+output discordInteractionEndpoint string? = deployDiscordBot ? 'https://${discordBot.outputs.containerAppUrl}/interactions'  : null

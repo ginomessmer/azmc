@@ -2,6 +2,7 @@ targetScope = 'resourceGroup'
 
 var roleDefinitionContainerLaunchManagerRoleName = 'Container App Launch Manager'
 var roleDefinitionContainerLaunchManagerActions = [
+  'Microsoft.ContainerInstance/containerGroups/read'
   'Microsoft.ContainerInstance/containerGroups/start/action'
   'Microsoft.ContainerInstance/containerGroups/stop/action'
   'Microsoft.ContainerInstance/containerGroups/restart/action'
