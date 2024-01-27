@@ -37,8 +37,8 @@ builder.Services
     });
 
 // Configuration
-builder.Services.Configure<BotOptions>(builder.Configuration.GetSection("Bot"));
-builder.Services.Configure<AzureOptions>(builder.Configuration.GetSection("Azure"));
+builder.Services.AddOptions<BotOptions>().BindConfiguration("Bot").ValidateDataAnnotations().ValidateOnStart();
+builder.Services.AddOptions<AzureOptions>().BindConfiguration("Azure").ValidateDataAnnotations().ValidateOnStart();
 
 builder.Services.AddLogging();
 
