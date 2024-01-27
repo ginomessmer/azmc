@@ -82,7 +82,7 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
     location: location
     projectName: name
     renderingStorageAccountName: deployRenderer ? storageRenderer.outputs.storageAccountPublicMapName : ''
-    workspaceName: logs.outputs.workspaceName
+    containerEnvironmentId: containerEnvironment.outputs.containerEnvironmentId
     deployRendererJob: deployRenderer
   }
 }

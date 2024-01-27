@@ -4,8 +4,7 @@ param projectName string
 @description('The name of the Log Analytics workspace to use for the bot')
 param workspaceName string
 
-var suffix = '${projectName}-services'
-var containerEnvironmentName = 'cae-${suffix}'
+var containerEnvironmentName = 'cae-${projectName}'
 
 resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
   name: workspaceName
