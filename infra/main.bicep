@@ -45,6 +45,17 @@ module server 'modules/server.bicep' = {
   }
 }
 
+// Container environment
+module containerEnvironment 'modules/container-env.bicep' = {
+  name: 'containerEnvironment'
+  params: {
+    location: location
+    projectName: name
+    workspaceName: logs.outputs.workspaceName
+  }
+}
+
+// Operational
 module logs 'modules/logs.bicep' = {
   name: 'logs'
   params: {
@@ -59,15 +70,6 @@ module storageRenderer 'modules/storage-map.bicep' = if(deployRenderer) {
   params: {
     location: location
     projectName: name
-  }
-}
-
-module containerEnvironment 'modules/container-env.bicep' = {
-  name: 'containerEnvironment'
-  params: {
-    location: location
-    projectName: name
-    workspaceName: logs.outputs.workspaceName
   }
 }
 
@@ -87,6 +89,7 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
   }
 }
 
+// Discord bot
 module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBotPublicKey != '' && discordBotToken != '') {
   dependsOn: [
     server
@@ -106,10 +109,12 @@ module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBo
   }
 }
 
+// Access management
 module roles 'modules/roles.bicep' = {
   name: 'roles'
 }
 
+// Dashboard
 module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
   name: 'dashboards'
   params: {
@@ -117,10 +122,10 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
     projectName: name
 
     logAnalyticsWorkspaceName: logs.outputs.workspaceName
-    managedEnvironmentName: deployRenderer ? renderer.outputs.containerEnvironmentName : ''
+    managedEnvironmentName: deployRenderer ? containerEnvironment.outputs.containerEnvironmentName : ''
     serverContainerGroupName: server.outputs.containerGroupName
     storageAccountName: storageServer.outputs.storageAccountServerName
   }
 }
 
-output discordInteractionEndpoint string? = deployDiscordBot ? 'https://${discordBot.outputs.containerAppUrl}/interactions'  : null
+output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl)   : null
