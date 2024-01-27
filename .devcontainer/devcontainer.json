@@ -15,7 +15,7 @@
 			"installBicep": true,
 			"version": "latest"
 		},
-		"ghcr.io/devcontainers/features/dotnet:1": {
+		"ghcr.io/devcontainers/features/dotnet:2": {
 			"installUsingApt": true,
 			"version": "latest"
 		},
@@ -40,7 +40,8 @@
 		"vscode": {
 			"extensions": [
 				"ms-azuretools.vscode-bicep",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"ms-dotnettools.csdevkit"
 			]
 		}
 	}

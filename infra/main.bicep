@@ -11,6 +11,15 @@ param deployDashboard bool = true
 @description('Deploy the map renderer module (PREVIEW).')
 param deployRenderer bool = false
 
+@description('Deploy the Discord bot module (PREVIEW). Make sure to supply the public key and token.')
+param deployDiscordBot bool = false
+@description('The public key for the Discord bot. Only required if deployDiscordBot is true.')
+@secure()
+param discordBotPublicKey string = ''
+@description('The token for the Discord bot. Only required if deployDiscordBot is true.')
+@secure()
+param discordBotToken string = ''
+
 // Server
 module storageServer 'modules/storage-server.bicep' = {
   name: 'storageServer'
@@ -36,6 +45,17 @@ module server 'modules/server.bicep' = {
   }
 }
 
+// Container environment
+module containerEnvironment 'modules/container-env.bicep' = {
+  name: 'containerEnvironment'
+  params: {
+    location: location
+    projectName: name
+    workspaceName: logs.outputs.workspaceName
+  }
+}
+
+// Operational
 module logs 'modules/logs.bicep' = {
   name: 'logs'
   params: {
@@ -64,11 +84,37 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
     location: location
     projectName: name
     renderingStorageAccountName: deployRenderer ? storageRenderer.outputs.storageAccountPublicMapName : ''
-    workspaceName: logs.outputs.workspaceName
+    containerEnvironmentId: containerEnvironment.outputs.containerEnvironmentId
     deployRendererJob: deployRenderer
   }
 }
 
+// Discord bot
+module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBotPublicKey != '' && discordBotToken != '') {
+  dependsOn: [
+    server
+    logs
+  ]
+  name: 'discordBot'
+  params: {
+    location: location
+    projectName: name
+
+    containerEnvironmentId: containerEnvironment.outputs.containerEnvironmentId
+    minecraftContainerGroupName: server.outputs.containerGroupName
+    discordBotPublicKey: discordBotPublicKey
+    discordBotToken: discordBotToken
+
+    containerLaunchManagerRoleId: roles.outputs.roleDefinitionContainerLaunchManagerId
+  }
+}
+
+// Access management
+module roles 'modules/roles.bicep' = {
+  name: 'roles'
+}
+
+// Dashboard
 module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
   name: 'dashboards'
   params: {
@@ -76,8 +122,10 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
     projectName: name
 
     logAnalyticsWorkspaceName: logs.outputs.workspaceName
-    managedEnvironmentName: deployRenderer ? renderer.outputs.containerEnvironmentName : ''
+    managedEnvironmentName: deployRenderer ? containerEnvironment.outputs.containerEnvironmentName : ''
     serverContainerGroupName: server.outputs.containerGroupName
     storageAccountName: storageServer.outputs.storageAccountServerName
   }
 }
+
+output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl)   : null

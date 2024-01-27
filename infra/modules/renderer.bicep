@@ -4,33 +4,13 @@ param projectName string
 param deployRendererJob bool
 
 param renderingStorageAccountName string
-param workspaceName string
 
-var containerEnvironmentName = 'cae-${projectName}'
-var rendererContainerJobName = '${projectName}-renderer-job'
+param containerEnvironmentId string
+
+var rendererContainerJobName = 'caj-${projectName}-renderer'
 
 var renderingContainerImage = 'ghcr.io/ginomessmer/azmc/map-renderer:main'
 
-// Dependencies
-resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
-  name: workspaceName
-}
-
-// Container Environment
-resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
-  name: containerEnvironmentName
-  location: location
-
-  properties: {
-    appLogsConfiguration: {
-      destination: 'log-analytics'
-      logAnalyticsConfiguration: {
-        customerId: workspace.properties.customerId
-        sharedKey: listKeys(workspace.id, workspace.apiVersion).primarySharedKey
-      }
-    }
-  }
-}
 
 // resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
 //   name: '${containerEnvironmentName}-diag'
@@ -58,7 +38,7 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = if (deployRender
     type: 'SystemAssigned'
   }
   properties: {
-    environmentId: containerEnvironment.id
+    environmentId: containerEnvironmentId
     configuration: {
       replicaTimeout: 1800
       triggerType: 'schedule'
@@ -110,5 +90,3 @@ resource storageKeyOperatorServiceRoleAssignment 'Microsoft.Authorization/roleAs
     principalType: 'ServicePrincipal'
   }
 }
-
-output containerEnvironmentName string = containerEnvironment.name

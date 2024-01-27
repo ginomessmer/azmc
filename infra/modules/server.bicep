@@ -127,4 +127,5 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
 }
 
 output containerGroupFqdn string = containerGroup.properties.ipAddress.fqdn
+output containerGroupId string = containerGroup.id
 output containerGroupName string = containerGroup.name
