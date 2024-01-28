@@ -20,6 +20,9 @@ param discordBotPublicKey string = ''
 @secure()
 param discordBotToken string = ''
 
+@description('Automatically shut down the server at midnight.')
+param deployAutoShutdown bool = true
+
 // Server
 module storageServer 'modules/storage-server.bicep' = {
   name: 'storageServer'
@@ -109,6 +112,18 @@ module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBo
   }
 }
 
+// Auto shutdown
+module autoShutdown 'modules/auto-shutdown.bicep' = if (deployAutoShutdown) {
+  name: 'autoShutdown'
+  params: {
+    location: location
+    projectName: name
+    
+    containerGroupName: server.outputs.containerGroupName
+    roleDefinitionId: roles.outputs.roleDefinitionContainerLaunchManagerId
+  }
+}
+
 // Access management
 module roles 'modules/roles.bicep' = {
   name: 'roles'
@@ -128,4 +143,5 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
   }
 }
 
+output minecraftServerEndpoint string = server.outputs.containerGroupFqdn
 output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl)   : null

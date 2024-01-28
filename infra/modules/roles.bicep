@@ -1,6 +1,6 @@
 targetScope = 'resourceGroup'
 
-var roleDefinitionContainerLaunchManagerRoleName = 'Container App Launch Manager'
+var roleDefinitionContainerLaunchManagerRoleName = 'Container App Launch Manager (${resourceGroup().name})'
 var roleDefinitionContainerLaunchManagerActions = [
   'Microsoft.ContainerInstance/containerGroups/read'
   'Microsoft.ContainerInstance/containerGroups/start/action'
@@ -9,6 +9,7 @@ var roleDefinitionContainerLaunchManagerActions = [
 ]
 var roleDefinitionContainerLaunchManagerNotActions = []
 var roleDefinitionContainerLaunchManagerName = guid(subscription().id,
+  resourceGroup().id,
   roleDefinitionContainerLaunchManagerRoleName,
   string(roleDefinitionContainerLaunchManagerActions),
   string(roleDefinitionContainerLaunchManagerNotActions))
