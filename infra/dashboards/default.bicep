@@ -1,25 +1,12 @@
 param location string
 param projectName string
 
-param serverContainerGroupName string
-resource serverContainerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01' existing = {
-  name: serverContainerGroupName
-}
+param minecraftServerContainerInstanceName string
+param discordBotContainerAppId string
+param serverStorageAccountId string
 
-param logAnalyticsWorkspaceName string
-resource logAnalyticsWorkspace 'Microsoft.Insights/workbooks@2022-04-01' existing = {
-  name: logAnalyticsWorkspaceName
-}
-
-@description('The name of the managed environment to show in the dashboard. Leave empty to hide the tile.')
-param managedEnvironmentName string = ''
-resource managedEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = if(managedEnvironmentName != '') {
-  name: managedEnvironmentName!
-}
-
-param storageAccountName string
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
-  name: storageAccountName
+resource minecraftServerContainerInstance 'Microsoft.ContainerInstance/containerGroups@2023-05-01' existing = {
+  name: minecraftServerContainerInstanceName
 }
 
 resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
@@ -38,13 +25,13 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
               x: 0
               y: 0
               colSpan: 2
-              rowSpan: 8
+              rowSpan: 1
             }
             metadata: {
               inputs: [
                 {
                   name: 'id'
-                  value: serverContainerGroup.id
+                  value: minecraftServerContainerInstance.id
                   isOptional: true
                 }
                 {
@@ -60,7 +47,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
               asset: {
                 idInputName: 'id'
               }
-              deepLink: '#@messmer.de.com/resource${serverContainerGroup.id}/overview'
+              deepLink: '#@${tenant().tenantId}/resource${minecraftServerContainerInstance.id}/overview'
             }
           }
           {
@@ -79,7 +66,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                       metrics: [
                         {
                           resourceMetadata: {
-                            id: serverContainerGroup.id
+                            id: minecraftServerContainerInstance.id
                           }
                           name: 'CpuUsage'
                           aggregationType: 4
@@ -89,7 +76,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                           }
                         }
                       ]
-                      title: 'Avg CPU Usage for azmcdev-server-cg'
+                      title: 'Avg CPU Usage for Minecraft Server Container'
                       titleKind: 1
                       visualization: {
                         chartType: 2
@@ -133,7 +120,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                       metrics: [
                         {
                           resourceMetadata: {
-                            id: serverContainerGroup.id
+                            id: minecraftServerContainerInstance.id
                           }
                           name: 'CpuUsage'
                           aggregationType: 4
@@ -143,7 +130,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                           }
                         }
                       ]
-                      title: 'Avg CPU Usage for azmcdev-server-cg'
+                      title: 'Avg CPU Usage for Minecraft Server Container'
                       titleKind: 1
                       visualization: {
                         chartType: 2
@@ -165,15 +152,6 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                         disablePinning: true
                       }
                     }
-                  }
-                }
-              }
-              filters: {
-                MsPortalFx_TimeRange: {
-                  model: {
-                    format: 'local'
-                    granularity: 'auto'
-                    relative: '1440m'
                   }
                 }
               }
@@ -195,7 +173,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                       metrics: [
                         {
                           resourceMetadata: {
-                            id: serverContainerGroup.id
+                            id: minecraftServerContainerInstance.id
                           }
                           name: 'MemoryUsage'
                           aggregationType: 4
@@ -205,7 +183,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                           }
                         }
                       ]
-                      title: 'Avg Memory Usage for azmcdev-server-cg'
+                      title: 'Avg Memory Usage for Minecraft Server Container'
                       titleKind: 1
                       visualization: {
                         chartType: 2
@@ -249,7 +227,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                       metrics: [
                         {
                           resourceMetadata: {
-                            id: serverContainerGroup.id
+                            id: minecraftServerContainerInstance.id
                           }
                           name: 'MemoryUsage'
                           aggregationType: 4
@@ -259,7 +237,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                           }
                         }
                       ]
-                      title: 'Avg Memory Usage for azmcdev-server-cg'
+                      title: 'Avg Memory Usage for Minecraft Server Container'
                       titleKind: 1
                       visualization: {
                         chartType: 2
@@ -281,15 +259,6 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                         disablePinning: true
                       }
                     }
-                  }
-                }
-              }
-              filters: {
-                MsPortalFx_TimeRange: {
-                  model: {
-                    format: 'local'
-                    granularity: 'auto'
-                    relative: '1440m'
                   }
                 }
               }
@@ -299,219 +268,192 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
             position: {
               x: 12
               y: 0
-              colSpan: 7
-              rowSpan: 8
-            }
-            metadata: {
-              inputs: [
-                {
-                  name: 'resourceTypeMode'
-                  isOptional: true
-                }
-                {
-                  name: 'ComponentId'
-                  isOptional: true
-                }
-                {
-                  name: 'Scope'
-                  value: {
-                    resourceIds: [
-                      logAnalyticsWorkspace.id
-                    ]
-                  }
-                  isOptional: true
-                }
-                {
-                  name: 'PartId'
-                  value: '7c3d5342-4b33-47bf-ae2b-f3ff0d04f68c'
-                  isOptional: true
-                }
-                {
-                  name: 'Version'
-                  value: '2.0'
-                  isOptional: true
-                }
-                {
-                  name: 'TimeRange'
-                  value: 'P1D'
-                  isOptional: true
-                }
-                {
-                  name: 'DashboardId'
-                  isOptional: true
-                }
-                {
-                  name: 'DraftRequestParameters'
-                  isOptional: true
-                }
-                {
-                  name: 'Query'
-                  value: 'ContainerInstanceLog_CL\n| where ContainerName_s == \'server\'\n| sort by TimeGenerated desc\n| project TimeGenerated, Message\n'
-                  isOptional: true
-                }
-                {
-                  name: 'ControlType'
-                  value: 'AnalyticsGrid'
-                  isOptional: true
-                }
-                {
-                  name: 'SpecificChart'
-                  isOptional: true
-                }
-                {
-                  name: 'PartTitle'
-                  value: 'Analytics'
-                  isOptional: true
-                }
-                {
-                  name: 'PartSubTitle'
-                  value: 'azmcdev-ws'
-                  isOptional: true
-                }
-                {
-                  name: 'Dimensions'
-                  isOptional: true
-                }
-                {
-                  name: 'LegendOptions'
-                  isOptional: true
-                }
-                {
-                  name: 'IsQueryContainTimeRange'
-                  value: false
-                  isOptional: true
-                }
-              ]
-              type: 'Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/LogsDashboardPart'
-              settings: {
-                content: {
-                  GridColumnsWidth: {
-                    Message: '672px'
-                  }
-                  PartTitle: 'Logs'
-                  PartSubTitle: 'Server'
-                }
-              }
-              partHeader: {
-                title: 'Minecraft Server Logs'
-                subtitle: ''
-              }
-            }
-          }
-          managedEnvironmentName == null ? {} : {
-            position: {
-              x: 20
-              y: 0
               colSpan: 2
-              rowSpan: 2
+              rowSpan: 1
             }
             metadata: {
               inputs: [
                 {
                   name: 'id'
-                  value: managedEnvironment.id
+                  value: discordBotContainerAppId
+                  isOptional: true
+                }
+                {
+                  name: 'resourceId'
+                  isOptional: true
+                }
+                {
+                  name: 'menuid'
+                  isOptional: true
                 }
               ]
-              type: 'Extension/WebsitesExtension/PartType/ContainerAppEnvironmentTile'
-              deepLink: '#@messmer.de.com/resource${managedEnvironment.id}/containerAppEnvironment'
+              type: 'Extension/HubsExtension/PartType/ResourcePart'
+              asset: {
+                idInputName: 'id'
+              }
+              deepLink: '#@${tenant().tenantId}/resource${discordBotContainerAppId}/containerapp'
             }
           }
           {
             position: {
-              x: 22
+              x: 14
               y: 0
-              colSpan: 9
-              rowSpan: 8
+              colSpan: 5
+              rowSpan: 4
             }
             metadata: {
               inputs: [
                 {
-                  name: 'resourceTypeMode'
-                  isOptional: true
-                }
-                {
-                  name: 'ComponentId'
-                  isOptional: true
-                }
-                {
-                  name: 'Scope'
+                  name: 'options'
                   value: {
-                    resourceIds: [
-                      logAnalyticsWorkspace.id
-                    ]
+                    chart: {
+                      metrics: [
+                        {
+                          resourceMetadata: {
+                            id: discordBotContainerAppId
+                          }
+                          name: 'Requests'
+                          aggregationType: 1
+                          namespace: 'microsoft.app/containerapps'
+                          metricVisualization: {
+                            displayName: 'Requests'
+                            resourceDisplayName: 'Discord Bot'
+                          }
+                        }
+                      ]
+                      title: 'Sum Requests for Discord Bot'
+                      titleKind: 1
+                      visualization: {
+                        chartType: 2
+                        legendVisualization: {
+                          isVisible: true
+                          position: 2
+                          hideSubtitle: false
+                        }
+                        axisVisualization: {
+                          x: {
+                            isVisible: true
+                            axisType: 2
+                          }
+                          y: {
+                            isVisible: true
+                            axisType: 1
+                          }
+                        }
+                      }
+                      timespan: {
+                        relative: {
+                          duration: 86400000
+                        }
+                        showUTCTime: false
+                        grain: 1
+                      }
+                    }
                   }
                   isOptional: true
                 }
                 {
-                  name: 'PartId'
-                  value: '5231be29-57b1-4c25-b6d0-4c6ba13666b2'
-                  isOptional: true
-                }
-                {
-                  name: 'Version'
-                  value: '2.0'
-                  isOptional: true
-                }
-                {
-                  name: 'TimeRange'
-                  value: 'P1D'
-                  isOptional: true
-                }
-                {
-                  name: 'DashboardId'
-                  isOptional: true
-                }
-                {
-                  name: 'DraftRequestParameters'
-                  isOptional: true
-                }
-                {
-                  name: 'Query'
-                  value: 'ContainerAppConsoleLogs_CL\n| where ContainerGroupName_s startswith \'azmcdev-renderer-job-\'\n| order by _timestamp_d desc\n| project TimeGenerated, Log_s, ContainerGroupName_s\n'
-                  isOptional: true
-                }
-                {
-                  name: 'ControlType'
-                  value: 'AnalyticsGrid'
-                  isOptional: true
-                }
-                {
-                  name: 'SpecificChart'
-                  isOptional: true
-                }
-                {
-                  name: 'PartTitle'
-                  value: 'Analytics'
-                  isOptional: true
-                }
-                {
-                  name: 'PartSubTitle'
-                  value: 'azmcdev-ws'
-                  isOptional: true
-                }
-                {
-                  name: 'Dimensions'
-                  isOptional: true
-                }
-                {
-                  name: 'LegendOptions'
-                  isOptional: true
-                }
-                {
-                  name: 'IsQueryContainTimeRange'
-                  value: false
+                  name: 'sharedTimeRange'
                   isOptional: true
                 }
               ]
-              type: 'Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/LogsDashboardPart'
+              type: 'Extension/HubsExtension/PartType/MonitorChartPart'
               settings: {
                 content: {
-                  GridColumnsWidth: {
-                    ContainerGroupName_s: '255px'
-                    Log_s: '470px'
+                  options: {
+                    chart: {
+                      metrics: [
+                        {
+                          resourceMetadata: {
+                            id: discordBotContainerAppId
+                          }
+                          name: 'Requests'
+                          aggregationType: 1
+                          namespace: 'microsoft.app/containerapps'
+                          metricVisualization: {
+                            displayName: 'Requests'
+                            resourceDisplayName: 'Discord Bot'
+                          }
+                        }
+                      ]
+                      title: 'Sum Requests for Discord Bot'
+                      titleKind: 1
+                      visualization: {
+                        chartType: 2
+                        legendVisualization: {
+                          isVisible: true
+                          position: 2
+                          hideSubtitle: false
+                        }
+                        axisVisualization: {
+                          x: {
+                            isVisible: true
+                            axisType: 2
+                          }
+                          y: {
+                            isVisible: true
+                            axisType: 1
+                          }
+                        }
+                        disablePinning: true
+                      }
+                    }
                   }
-                  PartTitle: 'Logs'
-                  PartSubTitle: 'Map Renderer'
+                }
+              }
+              filters: {
+                MsPortalFx_TimeRange: {
+                  model: {
+                    format: 'local'
+                    granularity: 'auto'
+                    relative: '1440m'
+                  }
+                }
+              }
+            }
+          }
+          {
+            position: {
+              x: 0
+              y: 1
+              colSpan: 2
+              rowSpan: 2
+            }
+            metadata: {
+              inputs: []
+              type: 'Extension/HubsExtension/PartType/ArmActions'
+              settings: {
+                content: {
+                  settings: {
+                    title: ''
+                    subtitle: ''
+                    uri: '${minecraftServerContainerInstance.id}/start?api-version=${minecraftServerContainerInstance.apiVersion}'
+                    name: 'Start server'
+                    data: ''
+                  }
+                }
+              }
+            }
+          }
+          {
+            position: {
+              x: 0
+              y: 3
+              colSpan: 2
+              rowSpan: 2
+            }
+            metadata: {
+              inputs: []
+              type: 'Extension/HubsExtension/PartType/ArmActions'
+              settings: {
+                content: {
+                  settings: {
+                    title: ''
+                    subtitle: ''
+                    uri: '${minecraftServerContainerInstance.id}/stop?api-version=${minecraftServerContainerInstance.apiVersion}'
+                    name: 'Stop server'
+                    data: ''
+                  }
                 }
               }
             }
@@ -532,7 +474,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                       metrics: [
                         {
                           resourceMetadata: {
-                            id: serverContainerGroup.id
+                            id: minecraftServerContainerInstance.id
                           }
                           name: 'NetworkBytesReceivedPerSecond'
                           aggregationType: 4
@@ -543,7 +485,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                         }
                         {
                           resourceMetadata: {
-                            id: serverContainerGroup.id
+                            id: minecraftServerContainerInstance.id
                           }
                           name: 'NetworkBytesTransmittedPerSecond'
                           aggregationType: 4
@@ -597,7 +539,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                       metrics: [
                         {
                           resourceMetadata: {
-                            id: serverContainerGroup.id
+                            id: minecraftServerContainerInstance.id
                           }
                           name: 'NetworkBytesReceivedPerSecond'
                           aggregationType: 4
@@ -608,7 +550,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                         }
                         {
                           resourceMetadata: {
-                            id: serverContainerGroup.id
+                            id: minecraftServerContainerInstance.id
                           }
                           name: 'NetworkBytesTransmittedPerSecond'
                           aggregationType: 4
@@ -640,15 +582,6 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                         disablePinning: true
                       }
                     }
-                  }
-                }
-              }
-              filters: {
-                MsPortalFx_TimeRange: {
-                  model: {
-                    format: 'local'
-                    granularity: 'auto'
-                    relative: '1440m'
                   }
                 }
               }
@@ -670,7 +603,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                       metrics: [
                         {
                           resourceMetadata: {
-                            id: storageAccount.id
+                            id: serverStorageAccountId
                           }
                           name: 'Egress'
                           aggregationType: 1
@@ -681,7 +614,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                         }
                         {
                           resourceMetadata: {
-                            id: storageAccount.id
+                            id: serverStorageAccountId
                           }
                           name: 'Ingress'
                           aggregationType: 1
@@ -735,7 +668,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                       metrics: [
                         {
                           resourceMetadata: {
-                            id: storageAccount.id
+                            id: serverStorageAccountId
                           }
                           name: 'Egress'
                           aggregationType: 1
@@ -746,7 +679,7 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                         }
                         {
                           resourceMetadata: {
-                            id: storageAccount.id
+                            id: serverStorageAccountId
                           }
                           name: 'Ingress'
                           aggregationType: 1
@@ -781,58 +714,10 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                   }
                 }
               }
-              filters: {
-                MsPortalFx_TimeRange: {
-                  model: {
-                    format: 'local'
-                    granularity: 'auto'
-                    relative: '1440m'
-                  }
-                }
-              }
             }
           }
         ]
       }
     ]
-    metadata: {
-      model: {
-        timeRange: {
-          value: {
-            relative: {
-              duration: 24
-              timeUnit: 1
-            }
-          }
-          type: 'MsPortalFx.Composition.Configuration.ValueTypes.TimeRange'
-        }
-        filterLocale: {
-          value: 'en-us'
-        }
-        filters: {
-          value: {
-            MsPortalFx_TimeRange: {
-              model: {
-                format: 'utc'
-                granularity: 'auto'
-                relative: '24h'
-              }
-              displayCache: {
-                name: 'UTC Time'
-                value: 'Past 24 hours'
-              }
-              filteredPartIds: [
-                'StartboardPart-MonitorChartPart-4d3c4e12-1631-4b7b-89fc-14f69cf9dd8a'
-                'StartboardPart-MonitorChartPart-4d3c4e12-1631-4b7b-89fc-14f69cf9dd8c'
-                'StartboardPart-LogsDashboardPart-4d3c4e12-1631-4b7b-89fc-14f69cf9dd8e'
-                'StartboardPart-LogsDashboardPart-4d3c4e12-1631-4b7b-89fc-14f69cf9dd92'
-                'StartboardPart-MonitorChartPart-4d3c4e12-1631-4b7b-89fc-14f69cf9dd94'
-                'StartboardPart-MonitorChartPart-4d3c4e12-1631-4b7b-89fc-14f69cf9dd96'
-              ]
-            }
-          }
-        }
-      }
-    }
   }
 }

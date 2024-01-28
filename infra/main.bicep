@@ -135,11 +135,10 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
   params: {
     location: location
     projectName: name
-
-    logAnalyticsWorkspaceName: logs.outputs.workspaceName
-    managedEnvironmentName: deployRenderer ? containerEnvironment.outputs.containerEnvironmentName : ''
-    serverContainerGroupName: server.outputs.containerGroupName
-    storageAccountName: storageServer.outputs.storageAccountServerName
+    
+    discordBotContainerAppId: deployDiscordBot ? discordBot.outputs.containerAppId : ''
+    minecraftServerContainerInstanceName: server.outputs.containerGroupName
+    serverStorageAccountId: storageServer.outputs.storageAccountId
   }
 }
 

@@ -93,3 +93,4 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
 }
 
 output containerAppUrl string = discordBotContainerApp.properties.configuration.ingress.fqdn
+output containerAppId string = discordBotContainerApp.id
