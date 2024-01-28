@@ -8,10 +8,10 @@ param acceptEula bool
 @description('Deploy the built-in Azure Portal dashboards.')
 param deployDashboard bool = true
 
-@description('Deploy the map renderer module (PREVIEW).')
+@description('Deploy the map renderer module (EXPERIMENTAL).')
 param deployRenderer bool = false
 
-@description('Deploy the Discord bot module (PREVIEW). Make sure to supply the public key and token.')
+@description('Deploy the Discord bot module. Make sure to supply the public key and token.')
 param deployDiscordBot bool = false
 @description('The public key for the Discord bot. Only required if deployDiscordBot is true.')
 @secure()
