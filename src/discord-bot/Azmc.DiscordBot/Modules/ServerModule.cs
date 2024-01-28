@@ -48,6 +48,7 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
         await _containerGroupResource.StartAsync(Azure.WaitUntil.Completed);
         await FollowupAsync(embed: new EmbedBuilder()
             .WithTitle("Server started")
+            .WithFooter("It may take a few additional minutes until the server is fully initialized.")
             .WithColor(Color.Green)
             .Build());
     }
