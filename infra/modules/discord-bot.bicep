@@ -5,7 +5,7 @@ param projectName string
 param containerEnvironmentId string
 
 @description('The docker image to use for the bot. This should be a public image. Leave the default value if you don\'t know what this is.')
-param botDockerImage string = 'ghcr.io/ginomessmer/azmc/discord-bot:feature-bot'
+param botDockerImage string = 'ghcr.io/ginomessmer/azmc/discord-bot'
 
 @description('The resource ID of the container group that runs the Minecraft server. This is used to interact with the server.')
 param minecraftContainerGroupName string
