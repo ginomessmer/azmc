@@ -401,15 +401,6 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                   }
                 }
               }
-              filters: {
-                MsPortalFx_TimeRange: {
-                  model: {
-                    format: 'local'
-                    granularity: 'auto'
-                    relative: '1440m'
-                  }
-                }
-              }
             }
           }
           {
