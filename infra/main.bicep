@@ -143,4 +143,5 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
   }
 }
 
+output minecraftServerEndpoint string = server.outputs.containerGroupFqdn
 output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl)   : null
