@@ -1,4 +1,4 @@
-name: Azure Deployment
+name: Deploy
 
 on:
   workflow_dispatch: 
@@ -7,15 +7,79 @@ on:
         description: 'Environment to deploy to'
         required: true
         default: development
+        type: environment
+      whatif_only:
+        description: 'Only run What If'
+        required: false
+        default: false
+        type: boolean
+
+permissions: 
+  id-token: write
+
+env:
+  AZ_INLINE_SCRIPT_PARAMS: |
+    -f infra/main.bicep \
+    -g ${{ secrets.AZURE_RG_NAME }} \
+    -p discordBotPublicKey="${{ secrets.DISCORD_BOT_PUBLIC_KEY }}" \
+    -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" \
+    ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} > whatif
 
 jobs:
-  deploy:
+  what_if:
     runs-on: ubuntu-latest
+    name: What If
     environment: ${{ github.event.inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Azure CLI
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: What If
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            az deployment group what-if \
+              ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
+
+      # Create string output of Whatif
+      - name: Create String Output of What If
+        id: whatif-string
+        run: |
+          WHATIF=$(cat whatif)
+          delimiter="$(openssl rand -hex 8)"
+          echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
+          echo "## ARM What If Output" >> $GITHUB_OUTPUT
+          echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo '```' >> $GITHUB_OUTPUT
+          echo "$WHATIF" >> $GITHUB_OUTPUT
+          echo '```' >> $GITHUB_OUTPUT
+          echo "</details>" >> $GITHUB_OUTPUT
+          echo "${delimiter}" >> $GITHUB_OUTPUT
+
+      # Publish Terraform Plan as task summary
+      - name: Publish What If to Task Summary
+        env:
+          SUMMARY: ${{ steps.whatif-string.outputs.summary }}
+        run: |
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Azure
+    needs: what_if
+    environment: ${{ github.event.inputs.environment }}
+    if: ${{ github.event.inputs.whatif_only == 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -23,4 +87,8 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy Infrastructure to Azure
-        run: az deployment group create -f infra/main.bicep -g ${{ secrets.AZURE_RG_NAME }} -p discordBotPublicKey="${{ secrets.DISCORD_BOT_PUBLIC_KEY }}" -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }}
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            az deployment group create \
+              ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
