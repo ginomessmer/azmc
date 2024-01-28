@@ -1,6 +1,9 @@
-name: Azure Minecraft
+name: Build and Publish Azure Minecraft
 
 on:
+  push:
+    branches: [ main ]
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -8,7 +11,7 @@ jobs:
     name: Build Infrastructure as Code
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build Bicep File
         run: az bicep build --file infra/main.bicep
 
@@ -19,9 +22,9 @@ jobs:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}/discord-bot
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v2.2.0
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -34,7 +37,7 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          push: true
+          push: ${{ github.ref == 'refs/heads/main' }}
           file: ./src/discord-bot/Azmc.DiscordBot/Dockerfile
           context: ./src/discord-bot
           tags: ${{ steps.meta.outputs.tags }}
@@ -47,9 +50,9 @@ jobs:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}/map-renderer
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v2.2.0
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -62,7 +65,7 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          push: true
+          push: ${{ github.ref == 'refs/heads/main' }}
           file: ./src/map-renderer/Dockerfile
           context: ./src/map-renderer
           tags: ${{ steps.meta.outputs.tags }}
