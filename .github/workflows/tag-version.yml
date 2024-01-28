@@ -11,12 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image_name: [discord-bot, map-renderer]
-        dockerfile: [./src/discord-bot/Azmc.DiscordBot/Dockerfile, ./src/map-renderer/Dockerfile]
-        context: [./src/discord-bot, ./src/map-renderer]
+        image: 
+          - name: discord-bot
+            dockerfile: ./src/discord-bot/Azmc.DiscordBot/Dockerfile
+            context: ./src/discord-bot
+          - name: map-renderer
+            dockerfile: ./src/map-renderer/Dockerfile
+            context: ./src/map-renderer
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: ${{ github.repository }}/${{ matrix.image_name }}
+      IMAGE_NAME: ${{ github.repository }}/${{ matrix.image.name }}
 
     steps:
       - name: Checkout Repository
@@ -39,9 +43,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: ${{ github.ref == 'refs/heads/main' }}
-          file: ${{ matrix.dockerfile }}
-          context: ${{ matrix.context }}
+          file: ${{ matrix.image.dockerfile }}
+          context: ${{ matrix.image.context }}
           tags: |
-            ${{ env.REGISTRY }}/${{ matrix.image_name }}:latest
-            ${{ env.REGISTRY }}/${{ matrix.image_name }}:${{ github.ref_name }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
           labels: ${{ steps.meta.outputs.labels }}
