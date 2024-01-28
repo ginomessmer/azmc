@@ -2,7 +2,6 @@ name: Build
 
 on:
   push:
-    branches: [ main ]
   pull_request:
   workflow_dispatch:
 
@@ -16,11 +15,11 @@ jobs:
         run: az bicep build --file infra/main.bicep
 
   build_discord-bot:
-    name: Build and Push Discord Bot
+    name: Build Discord Bot
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build and Push Docker Image
+      - name: Build Docker Image
         uses: docker/build-push-action@v5
         with:
           push: false
@@ -28,11 +27,11 @@ jobs:
           context: ./src/discord-bot
 
   build_map-renderer:
-    name: Build and Push Map Renderer
+    name: Build Map Renderer
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build and Push Docker Image
+      - name: Build Docker Image
         uses: docker/build-push-action@v5
         with:
           push: false
