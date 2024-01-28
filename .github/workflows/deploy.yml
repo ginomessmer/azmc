@@ -16,6 +16,7 @@ jobs:
   what_if:
     runs-on: ubuntu-latest
     name: What If
+    environment: ${{ github.event.inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
