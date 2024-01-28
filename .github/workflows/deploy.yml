@@ -8,6 +8,11 @@ on:
         required: true
         default: development
         type: environment
+      whatif_only:
+        description: 'Only run What If'
+        required: false
+        default: false
+        type: boolean
 
 permissions: 
   id-token: write
@@ -70,6 +75,7 @@ jobs:
     name: Deploy to Azure
     needs: what_if
     environment: ${{ github.event.inputs.environment }}
+    if: ${{ github.event.inputs.whatif_only == 'false' }}
     steps:
       - uses: actions/checkout@v4
 
