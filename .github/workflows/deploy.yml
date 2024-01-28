@@ -1,4 +1,4 @@
-name: Azure Deployment
+name: Deploy to Azure
 
 on:
   workflow_dispatch: 
@@ -8,9 +8,13 @@ on:
         required: true
         default: development
 
+permissions: 
+  id-token: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    name: Deploy to Azure
     environment: ${{ github.event.inputs.environment }}
     steps:
       - uses: actions/checkout@v4
