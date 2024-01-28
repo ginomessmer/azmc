@@ -66,3 +66,4 @@ resource serverFileShareLock 'Microsoft.Authorization/locks@2020-05-01' = {
 output storageAccountServerResourceId string = storageAccountServer.id
 output storageAccountServerName string = storageAccountServer.name
 output storageAccountFileShareServerName string = storageAccountServer::serverFileServices::serverFileShare.name
+output storageAccountId string = storageAccountServer.id

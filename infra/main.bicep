@@ -8,10 +8,10 @@ param acceptEula bool
 @description('Deploy the built-in Azure Portal dashboards.')
 param deployDashboard bool = true
 
-@description('Deploy the map renderer module (PREVIEW).')
+@description('Deploy the map renderer module (EXPERIMENTAL).')
 param deployRenderer bool = false
 
-@description('Deploy the Discord bot module (PREVIEW). Make sure to supply the public key and token.')
+@description('Deploy the Discord bot module. Make sure to supply the public key and token.')
 param deployDiscordBot bool = false
 @description('The public key for the Discord bot. Only required if deployDiscordBot is true.')
 @secure()
@@ -135,11 +135,10 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
   params: {
     location: location
     projectName: name
-
-    logAnalyticsWorkspaceName: logs.outputs.workspaceName
-    managedEnvironmentName: deployRenderer ? containerEnvironment.outputs.containerEnvironmentName : ''
-    serverContainerGroupName: server.outputs.containerGroupName
-    storageAccountName: storageServer.outputs.storageAccountServerName
+    
+    discordBotContainerAppId: deployDiscordBot ? discordBot.outputs.containerAppId : ''
+    minecraftServerContainerInstanceName: server.outputs.containerGroupName
+    serverStorageAccountId: storageServer.outputs.storageAccountId
   }
 }
 
