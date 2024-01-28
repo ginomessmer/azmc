@@ -1,4 +1,4 @@
-name: Tag Docker Images on Release
+name: Release Docker Images
 
 on:
   release:

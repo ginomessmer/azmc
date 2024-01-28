@@ -1,4 +1,4 @@
-name: Build Azure Minecraft
+name: Build
 
 on:
   push:
