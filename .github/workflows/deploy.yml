@@ -28,4 +28,12 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy Infrastructure to Azure
-        run: az deployment group create -f infra/main.bicep -g ${{ secrets.AZURE_RG_NAME }} -p discordBotPublicKey="${{ secrets.DISCORD_BOT_PUBLIC_KEY }}" -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }}
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            az deployment group create \
+              -f infra/main.bicep \
+              -g ${{ secrets.AZURE_RG_NAME }} \
+              -p discordBotPublicKey="${{ secrets.DISCORD_BOT_PUBLIC_KEY }}" \
+              -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" \
+              ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }}
