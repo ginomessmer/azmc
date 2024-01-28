@@ -12,6 +12,14 @@ on:
 permissions: 
   id-token: write
 
+env:
+  AZ_INLINE_SCRIPT_PARAMS: |
+    -f infra/main.bicep \
+    -g ${{ secrets.AZURE_RG_NAME }} \
+    -p discordBotPublicKey="${{ secrets.DISCORD_BOT_PUBLIC_KEY }}" \
+    -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" \
+    ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} > whatif
+
 jobs:
   what_if:
     runs-on: ubuntu-latest
@@ -32,11 +40,7 @@ jobs:
         with:
           inlineScript: |
             az deployment group what-if \
-              -f infra/main.bicep \
-              -g ${{ secrets.AZURE_RG_NAME }} \
-              -p discordBotPublicKey="${{ secrets.DISCORD_BOT_PUBLIC_KEY }}" \
-              -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" \
-              ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} > whatif
+              ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
 
       # Create string output of Whatif
       - name: Create String Output of What If
@@ -81,8 +85,4 @@ jobs:
         with:
           inlineScript: |
             az deployment group create \
-              -f infra/main.bicep \
-              -g ${{ secrets.AZURE_RG_NAME }} \
-              -p discordBotPublicKey="${{ secrets.DISCORD_BOT_PUBLIC_KEY }}" \
-              -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" \
-              ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }}
+              ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
