@@ -55,3 +55,7 @@ resource identityLock 'Microsoft.Authorization/locks@2020-05-01' = {
     notes: 'Lock to prevent accidental modification to this identity to keep GitHub actions working.'
   }
 }
+
+output identityPrincipalId string = identity.properties.principalId
+output subscriptionId string = subscription().subscriptionId
+output tenantId string = tenant().tenantId
