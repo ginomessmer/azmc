@@ -28,11 +28,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract Metadata
         id: meta
-        uses: docker/metadata-action@v4.6.0
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - name: Build and Push Docker Image
-        uses: docker/build-push-action@v4.1.1
+        uses: docker/build-push-action@v5
         with:
           push: true
           file: ./src/discord-bot/Azmc.DiscordBot/Dockerfile
@@ -56,11 +56,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract Metadata
         id: meta
-        uses: docker/metadata-action@v4.6.0
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - name: Build and Push Docker Image
-        uses: docker/build-push-action@v4.1.1
+        uses: docker/build-push-action@v5
         with:
           push: true
           file: ./src/map-renderer/Dockerfile
