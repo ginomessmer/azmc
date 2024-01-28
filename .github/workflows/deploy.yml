@@ -36,7 +36,7 @@ jobs:
               -g ${{ secrets.AZURE_RG_NAME }} \
               -p discordBotPublicKey="${{ secrets.DISCORD_BOT_PUBLIC_KEY }}" \
               -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" \
-              ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} > what-if
+              ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} > whatif
 
       # Create string output of Whatif
       - name: Create String Output
