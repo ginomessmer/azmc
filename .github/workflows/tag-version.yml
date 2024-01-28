@@ -6,8 +6,8 @@ on:
       - created
 
 jobs:
-  tag_images:
-    name: Tag Docker Images
+  release_images:
+    name: Release Docker Image
     runs-on: ubuntu-latest
     strategy:
       matrix:
