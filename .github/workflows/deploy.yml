@@ -39,13 +39,13 @@ jobs:
               ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} > whatif
 
       # Create string output of Whatif
-      - name: Create String Output
+      - name: Create String Output of What If
         id: whatif-string
         run: |
           WHATIF=$(cat whatif)
           delimiter="$(openssl rand -hex 8)"
           echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
-          echo "## Whatif Output" >> $GITHUB_OUTPUT
+          echo "## ARM What If Output" >> $GITHUB_OUTPUT
           echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
           echo '```' >> $GITHUB_OUTPUT
@@ -55,7 +55,7 @@ jobs:
           echo "${delimiter}" >> $GITHUB_OUTPUT
 
       # Publish Terraform Plan as task summary
-      - name: Publish Whatif to Task Summary
+      - name: Publish What If to Task Summary
         env:
           SUMMARY: ${{ steps.whatif-string.outputs.summary }}
         run: |
