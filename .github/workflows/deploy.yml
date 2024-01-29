@@ -13,6 +13,11 @@ on:
         required: false
         default: false
         type: boolean
+      additional_params:
+        description: 'Additional parameters to pass to the deployment'
+        required: false
+        default: ''
+        type: string
 
 permissions: 
   id-token: write
@@ -23,7 +28,8 @@ env:
     -g ${{ secrets.AZURE_RG_NAME }} \
     -p discordBotPublicKey="${{ secrets.DISCORD_BOT_PUBLIC_KEY }}" \
     -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" \
-    ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} > whatif
+    ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} \
+    ${{ github.event.inputs.additional_params }}
 
 jobs:
   what_if:
@@ -45,7 +51,7 @@ jobs:
         with:
           inlineScript: |
             az deployment group what-if \
-              ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
+              ${{ env.AZ_INLINE_SCRIPT_PARAMS }} > whatif
 
       # Create string output of Whatif
       - name: Create String Output of What If
@@ -57,7 +63,7 @@ jobs:
           echo "## ARM What If Output" >> $GITHUB_OUTPUT
           echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
-          echo '```' >> $GITHUB_OUTPUT
+          echo '```console' >> $GITHUB_OUTPUT
           echo "$WHATIF" >> $GITHUB_OUTPUT
           echo '```' >> $GITHUB_OUTPUT
           echo "</details>" >> $GITHUB_OUTPUT
