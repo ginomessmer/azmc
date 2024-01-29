@@ -55,6 +55,8 @@ module containerEnvironment 'modules/container-env.bicep' = {
     location: location
     projectName: name
     workspaceName: logs.outputs.workspaceName
+    minecraftServerStorageAccountName: storageServer.outputs.storageAccountServerName
+    mapRendererStorageAccountName: deployRenderer ? storageRenderer.outputs.storageAccountPublicMapName : null
   }
 }
 
@@ -88,7 +90,6 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
     projectName: name
     renderingStorageAccountName: deployRenderer ? storageRenderer.outputs.storageAccountPublicMapName : ''
     containerEnvironmentId: containerEnvironment.outputs.containerEnvironmentId
-    deployRendererJob: deployRenderer
   }
 }
 

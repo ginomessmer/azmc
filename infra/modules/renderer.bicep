@@ -1,8 +1,6 @@
 param location string
 param projectName string
 
-param deployRendererJob bool
-
 param renderingStorageAccountName string
 
 param containerEnvironmentId string
@@ -12,7 +10,7 @@ var rendererContainerJobName = 'cj-${projectName}-renderer'
 var renderingContainerImage = 'ghcr.io/ginomessmer/azmc/map-renderer:main'
 
 // Container Job for renderer
-resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = if (deployRendererJob) {
+resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
   name: rendererContainerJobName
   location: location
   identity: {

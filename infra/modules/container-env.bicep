@@ -4,13 +4,21 @@ param projectName string
 @description('The name of the Log Analytics workspace to use for the bot')
 param workspaceName string
 
+param minecraftServerStorageAccountName string
+
 @description('(Optional) The name of the storage account to use for the map renderer. If not specified, the map renderer won\'t be attached.')
 param mapRendererStorageAccountName string?
 
 var containerEnvironmentName = 'cae-${projectName}'
 
+var vars = loadJsonContent('../vars.json')
+
 resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
   name: workspaceName
+}
+
+resource minecraftServerStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+  name: minecraftServerStorageAccountName
 }
 
 resource mapRendererStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = if (mapRendererStorageAccountName != null) {
@@ -32,7 +40,20 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
     }
   }
 
-  resource test 'storages' = if (mapRendererStorageAccountName != null) {
+  // Storages
+  resource minecraftServerStorage 'storages' = {
+    name: 'minecraft-server'
+    properties: {
+      azureFile: {
+        accessMode: 'ReadOnly'
+        shareName: vars.minecraftServerFileShareName
+        accountName: minecraftServerStorageAccount.name
+        accountKey: minecraftServerStorageAccount.listKeys().keys[0].value
+      }
+    }
+  }
+
+  resource blueMapWebStorage 'storages' = if (mapRendererStorageAccountName != null) {
     name: 'bluemap-web'
     properties: {
       azureFile: {
