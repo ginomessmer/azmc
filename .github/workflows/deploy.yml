@@ -29,7 +29,7 @@ env:
     -p discordBotPublicKey="${{ secrets.DISCORD_BOT_PUBLIC_KEY }}" \
     -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" \
     ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} \
-    ${{ github.event.inputs.additional_params }}
+    ${{ github.event.inputs.additional_params }} > whatif
 
 jobs:
   what_if:
@@ -51,7 +51,7 @@ jobs:
         with:
           inlineScript: |
             az deployment group what-if \
-              ${{ env.AZ_INLINE_SCRIPT_PARAMS }} > whatif
+              ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
 
       # Create string output of Whatif
       - name: Create String Output of What If
