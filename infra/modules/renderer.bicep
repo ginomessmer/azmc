@@ -48,6 +48,17 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
     template: {
       containers: [
         {
+          volumeMounts: [
+            {
+              mountPath: '/app/world'
+              subPath: 'world'
+              volumeName: 'minecraft-server'
+            }
+            {
+              mountPath: '/app/web'
+              volumeName: 'bluemap-web'
+            }
+          ]
           name: 'renderer'
           image: renderingContainerImage
           env: [
