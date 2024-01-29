@@ -16,12 +16,24 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing 
 resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-preview' existing = {
   name: containerEnvironmentName
 
-  resource blueMapWebStorage 'storages' = if (mapRendererStorageAccountName != '') {
+  resource mapWebStorage 'storages' =  {
     name: const.containerEnvMapWebStorageName
     properties: {
       azureFile: {
         accessMode: 'ReadWrite'
-        shareName: 'web'
+        shareName: const.renderer.webShareName
+        accountName: storageAccount.name
+        accountKey: storageAccount.listKeys().keys[0].value
+      }
+    }
+  }
+
+  resource blueMapStorage 'storages' = {
+    name: const.containerEnvBlueMapStorageName
+    properties: {
+      azureFile: {
+        accessMode: 'ReadOnly'
+        shareName: const.renderer.blueMapShareName
         accountName: storageAccount.name
         accountKey: storageAccount.listKeys().keys[0].value
       }

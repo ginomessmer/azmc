@@ -7,6 +7,8 @@ var normalizedProjectName = replace(projectName, '-', '')
 var storageAccountName = 'st${normalizedProjectName}'
 var storageAccountNamePublicMap = '${storageAccountName}map'
 
+var const = loadJsonContent('../const.json')
+
 // Map container
 resource storageAccountPublicMap 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: storageAccountNamePublicMap
@@ -20,21 +22,19 @@ resource storageAccountPublicMap 'Microsoft.Storage/storageAccounts@2023-01-01' 
     allowBlobPublicAccess: true
     supportsHttpsTrafficOnly: true
   }
-
-  // Map container
-  resource publicMapBlobServices 'blobServices' = {
+  
+  resource fileServices 'fileServices' = {
     name: 'default'
-    
-    resource publicMapContainer 'containers' = {
-      name: '$web'
-      properties: {
-        publicAccess: 'Blob'
-      }
+
+    resource webShare 'shares' = {
+      name: const.renderer.webShareName
+    }
+
+    resource blueMapShare 'shares' = {
+      name: const.renderer.blueMapShareName
     }
   }
 }
 
 output storageAccountPublicMapResourceId string = storageAccountPublicMap.id
 output storageAccountPublicMapName string = storageAccountPublicMap.name
-output storageAccountPublicMapContainerName string = storageAccountPublicMap::publicMapBlobServices::publicMapContainer.name
-

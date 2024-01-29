@@ -1,5 +1,10 @@
 {
     "minecraftServerFileShareName": "server",
     "containerEnvMinecraftServerStorageName": "minecraft-server",
-    "containerEnvMapWebStorageName": "bluemap-web"
+    "containerEnvMapWebStorageName": "map-web",
+    "containerEnvBlueMapStorageName": "bluemap",
+    "renderer": {
+        "webShareName": "web",
+        "blueMapShareName": "bluemap"
+    }   
 }
