@@ -1,13 +1,32 @@
 param location string
 param projectName string
 
-param renderingStorageAccountName string
-
-param containerEnvironmentId string
+param containerEnvironmentName string
+param mapRendererStorageAccountName string = ''
 
 var rendererContainerJobName = 'cj-${projectName}-renderer'
-
 var renderingContainerImage = 'ghcr.io/ginomessmer/azmc/map-renderer:main'
+
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+  name: mapRendererStorageAccountName
+}
+
+resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-preview' existing = {
+  name: containerEnvironmentName
+
+  resource blueMapWebStorage 'storages' = if (mapRendererStorageAccountName != '') {
+    name: 'bluemap-web'
+    properties: {
+      azureFile: {
+        accessMode: 'ReadWrite'
+        shareName: 'web'
+        accountName: storageAccount.name
+        accountKey: storageAccount.listKeys().keys[0].value
+      }
+    }
+  }
+}
 
 // Container Job for renderer
 resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
@@ -17,7 +36,7 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
     type: 'SystemAssigned'
   }
   properties: {
-    environmentId: containerEnvironmentId
+    environmentId: containerEnvironment.id
     configuration: {
       replicaTimeout: 1800
       triggerType: 'schedule'
@@ -34,7 +53,7 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
           env: [
             {
               name: 'AZURE_STORAGE_ACCOUNT'
-              value: renderingStorageAccountName
+              value: storageAccount.name
             }
             {
               name: 'AZURE_STORAGE_ACCOUNT_RG_NAME'
@@ -56,16 +75,13 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
 }
 
 // Assign roles to container job
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
-  name: renderingStorageAccountName
-}
-
+var roleDefinitionName = '81a9662b-bebf-436f-a333-f67b29880f12'
 resource storageKeyOperatorServiceRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid('81a9662b-bebf-436f-a333-f67b29880f12', rendererContainerJob.id)
+  name: guid(rendererContainerJob.id, roleDefinitionName)
   scope: storageAccount
   properties: {
     principalId: rendererContainerJob.identity.principalId
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '81a9662b-bebf-436f-a333-f67b29880f12')
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionName)
     principalType: 'ServicePrincipal'
   }
 }
