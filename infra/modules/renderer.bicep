@@ -46,6 +46,16 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
       }
     }
     template: {
+      volumes: [
+        {
+          storageType: 'AzureFile'
+          name: 'minecraft-server'
+        }
+        {
+          storageType: 'AzureFile'
+          name: 'bluemap-web'
+        }
+      ]
       containers: [
         {
           volumeMounts: [
