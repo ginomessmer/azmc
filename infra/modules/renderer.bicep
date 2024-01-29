@@ -16,6 +16,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing 
 resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-preview' existing = {
   name: containerEnvironmentName
 
+  // Web map
   resource mapWebStorage 'storages' =  {
     name: const.containerEnvMapWebStorageName
     properties: {
@@ -28,11 +29,12 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-prev
     }
   }
 
+  // Blue map
   resource blueMapStorage 'storages' = {
     name: const.containerEnvBlueMapStorageName
     properties: {
       azureFile: {
-        accessMode: 'ReadOnly'
+        accessMode: 'ReadWrite'
         shareName: const.renderer.blueMapShareName
         accountName: storageAccount.name
         accountKey: storageAccount.listKeys().keys[0].value
@@ -61,14 +63,22 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
     template: {
       volumes: [
         {
+          // Minecraft server
           storageName: const.containerEnvMinecraftServerStorageName
           storageType: 'AzureFile'
           name: const.containerEnvMinecraftServerStorageName
         }
         {
+          // Web map
           storageName: const.containerEnvMapWebStorageName
           storageType: 'AzureFile'
           name: const.containerEnvMapWebStorageName
+        }
+        {
+          // Blue map
+          storageName: const.containerEnvBlueMapStorageName
+          storageType: 'AzureFile'
+          name: const.containerEnvBlueMapStorageName
         }
       ]
       containers: [
