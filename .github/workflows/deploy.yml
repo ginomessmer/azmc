@@ -63,7 +63,7 @@ jobs:
           echo "## ARM What If Output" >> $GITHUB_OUTPUT
           echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
-          echo '```console' >> $GITHUB_OUTPUT
+          echo '```log' >> $GITHUB_OUTPUT
           echo "$WHATIF" >> $GITHUB_OUTPUT
           echo '```' >> $GITHUB_OUTPUT
           echo "</details>" >> $GITHUB_OUTPUT
