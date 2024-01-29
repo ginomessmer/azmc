@@ -7,6 +7,7 @@ param mapRendererStorageAccountName string = ''
 var rendererContainerJobName = 'cj-${projectName}-renderer'
 var renderingContainerImage = 'ghcr.io/ginomessmer/azmc/map-renderer:main'
 
+var const = loadJsonContent('../const.json')
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
   name: mapRendererStorageAccountName
@@ -16,7 +17,7 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-prev
   name: containerEnvironmentName
 
   resource blueMapWebStorage 'storages' = if (mapRendererStorageAccountName != '') {
-    name: 'bluemap-web'
+    name: const.containerEnvMapWebStorageName
     properties: {
       azureFile: {
         accessMode: 'ReadWrite'
@@ -48,12 +49,14 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
     template: {
       volumes: [
         {
+          storageName: const.containerEnvMinecraftServerStorageName
           storageType: 'AzureFile'
-          name: 'minecraft-server'
+          name: const.containerEnvMinecraftServerStorageName
         }
         {
+          storageName: const.containerEnvMapWebStorageName
           storageType: 'AzureFile'
-          name: 'bluemap-web'
+          name: const.containerEnvMapWebStorageName
         }
       ]
       containers: [
@@ -62,11 +65,11 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
             {
               mountPath: '/app/world'
               subPath: 'world'
-              volumeName: 'minecraft-server'
+              volumeName: const.containerEnvMinecraftServerStorageName
             }
             {
               mountPath: '/app/web'
-              volumeName: 'bluemap-web'
+              volumeName: const.containerEnvMapWebStorageName
             }
           ]
           name: 'renderer'

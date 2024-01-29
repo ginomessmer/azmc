@@ -1,0 +1,5 @@
+{
+    "minecraftServerFileShareName": "server",
+    "containerEnvMinecraftServerStorageName": "minecraft-server",
+    "containerEnvMapWebStorageName": "bluemap-web"
+}

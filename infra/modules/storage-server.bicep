@@ -7,9 +7,9 @@ var normalizedProjectName = replace(projectName, '-', '')
 var storageAccountName = 'st${normalizedProjectName}'
 var storageAccountNameServer = '${storageAccountName}server'
 
-var vars = loadJsonContent('../vars.json')
+var const = loadJsonContent('../const.json')
 
-var serverFileShareName = vars.minecraftServerFileShareName
+var serverFileShareName = const.minecraftServerFileShareName
 
 // Server container
 resource storageAccountServer 'Microsoft.Storage/storageAccounts@2023-01-01' = {

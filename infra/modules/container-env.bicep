@@ -8,7 +8,7 @@ param minecraftServerStorageAccountName string
 
 var containerEnvironmentName = 'cae-${projectName}'
 
-var vars = loadJsonContent('../vars.json')
+var const = loadJsonContent('../const.json')
 
 resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
   name: workspaceName
@@ -35,11 +35,11 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
 
   // Storages
   resource minecraftServerStorage 'storages' = {
-    name: 'minecraft-server'
+    name: const.containerEnvMinecraftServerStorageName
     properties: {
       azureFile: {
         accessMode: 'ReadOnly'
-        shareName: vars.minecraftServerFileShareName
+        shareName: const.minecraftServerFileShareName
         accountName: minecraftServerStorageAccount.name
         accountKey: minecraftServerStorageAccount.listKeys().keys[0].value
       }
