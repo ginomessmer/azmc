@@ -6,8 +6,8 @@ param workspaceName string
 
 param minecraftServerStorageAccountName string
 
-@description('(Optional) The name of the storage account to use for the map renderer. If not specified, the map renderer won\'t be attached.')
-param mapRendererStorageAccountName string?
+@description('(Optional) The name of the storage account to use for the map renderer. If left empty, the map renderer won\'t be attached.')
+param mapRendererStorageAccountName string = ''
 
 var containerEnvironmentName = 'cae-${projectName}'
 
@@ -21,7 +21,7 @@ resource minecraftServerStorageAccount 'Microsoft.Storage/storageAccounts@2023-0
   name: minecraftServerStorageAccountName
 }
 
-resource mapRendererStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = if (mapRendererStorageAccountName != null) {
+resource mapRendererStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = if (mapRendererStorageAccountName != '') {
   name: mapRendererStorageAccountName!
 }
 
@@ -53,7 +53,7 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
     }
   }
 
-  resource blueMapWebStorage 'storages' = if (mapRendererStorageAccountName != null) {
+  resource blueMapWebStorage 'storages' = if (mapRendererStorageAccountName != '') {
     name: 'bluemap-web'
     properties: {
       azureFile: {

@@ -56,7 +56,7 @@ module containerEnvironment 'modules/container-env.bicep' = {
     projectName: name
     workspaceName: logs.outputs.workspaceName
     minecraftServerStorageAccountName: storageServer.outputs.storageAccountServerName
-    mapRendererStorageAccountName: deployRenderer ? storageRenderer.outputs.storageAccountPublicMapName : null
+    mapRendererStorageAccountName: deployRenderer ? storageRenderer.outputs.storageAccountPublicMapName : ''
   }
 }
 
