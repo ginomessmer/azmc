@@ -7,31 +7,12 @@ param renderingStorageAccountName string
 
 param containerEnvironmentId string
 
-var rendererContainerJobName = 'caj-${projectName}-renderer'
+var rendererContainerJobName = 'cj-${projectName}-renderer'
 
 var renderingContainerImage = 'ghcr.io/ginomessmer/azmc/map-renderer:main'
 
-
-// resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-//   name: '${containerEnvironmentName}-diag'
-//   scope: containerEnvironment
-//   properties: {
-//     workspaceId: workspace.id
-//     logs: [
-//       {
-//         category: 'ContainerAppConsoleLogs'
-//         enabled: true
-//       }
-//       {
-//         category: 'ContainerAppSystemLogs'
-//         enabled: true
-//       }
-//     ]
-//   }
-// }
-
 // Container Job for renderer
-resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = if (deployRendererJob) {
+resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = if (deployRendererJob) {
   name: rendererContainerJobName
   location: location
   identity: {

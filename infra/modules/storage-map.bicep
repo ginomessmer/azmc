@@ -24,9 +24,9 @@ resource storageAccountPublicMap 'Microsoft.Storage/storageAccounts@2023-01-01' 
   // Map container
   resource publicMapBlobServices 'blobServices' = {
     name: 'default'
-
+    
     resource publicMapContainer 'containers' = {
-      name: 'map'
+      name: '$web'
       properties: {
         publicAccess: 'Blob'
       }
