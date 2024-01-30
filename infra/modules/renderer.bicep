@@ -96,12 +96,12 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
             {
               mountPath: '/app/config'
               volumeName: const.containerEnvBlueMapStorageName
-              subPath: '/config'
+              subPath: 'config'
             }
             {
               mountPath: '/app/data'
               volumeName: const.containerEnvBlueMapStorageName
-              subPath: '/data'
+              subPath: 'data'
             }
           ]
           name: 'renderer'
