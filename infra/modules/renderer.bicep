@@ -53,7 +53,7 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
   properties: {
     environmentId: containerEnvironment.id
     configuration: {
-      replicaTimeout: 1800
+      replicaTimeout: 3600
       triggerType: 'schedule'
       replicaRetryLimit: 0
       scheduleTriggerConfig: {

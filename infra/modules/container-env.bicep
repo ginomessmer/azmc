@@ -38,7 +38,7 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
     name: const.containerEnvMinecraftServerStorageName
     properties: {
       azureFile: {
-        accessMode: 'ReadOnly'
+        accessMode: 'ReadWrite'
         shareName: const.minecraftServer.shareName
         accountName: minecraftServerStorageAccount.name
         accountKey: minecraftServerStorageAccount.listKeys().keys[0].value
