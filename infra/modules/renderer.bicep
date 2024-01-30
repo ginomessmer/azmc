@@ -122,7 +122,6 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
 resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: webMapContainerAppName
   location: location
-
   properties: {
     environmentId: containerEnvironment.id
     configuration: {
@@ -151,9 +150,9 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
               volumeName: const.containerEnvMapWebStorageName
             }
             {
-              mountPath: '/etc/nginx/conf.d/default.conf'
+              mountPath: '/etc/nginx/conf.d'
               volumeName: const.containerEnvMapWebStorageName
-              subPath: 'nginx.conf'
+              subPath: 'conf.d'
             }
           ]
           resources:{
