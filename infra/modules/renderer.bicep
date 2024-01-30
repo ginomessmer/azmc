@@ -5,7 +5,7 @@ param containerEnvironmentName string
 param mapRendererStorageAccountName string = ''
 
 var rendererContainerJobName = 'cj-${projectName}-renderer'
-var renderingContainerImage = 'ghcr.io/ginomessmer/azmc/map-renderer:main'
+var renderingContainerImage = 'ghcr.io/bluemap-minecraft/bluemap:latest'
 
 var const = loadJsonContent('../const.json')
 
@@ -93,23 +93,20 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
               mountPath: '/app/web'
               volumeName: const.containerEnvMapWebStorageName
             }
+            {
+              mountPath: '/app/config'
+              volumeName: const.containerEnvBlueMapStorageName
+              subPath: '/config'
+            }
+            {
+              mountPath: '/app/data'
+              volumeName: const.containerEnvBlueMapStorageName
+              subPath: '/data'
+            }
           ]
           name: 'renderer'
           image: renderingContainerImage
-          env: [
-            {
-              name: 'AZURE_STORAGE_ACCOUNT'
-              value: storageAccount.name
-            }
-            {
-              name: 'AZURE_STORAGE_ACCOUNT_RG_NAME'
-              value: resourceGroup().name
-            }
-            {
-              name: 'AZURE_LOGIN_TYPE'
-              value: 'managed-identity'
-            }
-          ]
+          args: [ '-r' ]
           resources: {
             cpu: 2
             memory: '4.0Gi'
