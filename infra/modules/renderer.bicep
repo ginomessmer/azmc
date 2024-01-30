@@ -7,6 +7,8 @@ param mapRendererStorageAccountName string = ''
 var rendererContainerJobName = 'cj-${projectName}-renderer'
 var renderingContainerImage = 'ghcr.io/bluemap-minecraft/bluemap:latest'
 
+var webMapContainerAppName = 'ca-${projectName}-map-web'
+
 var const = loadJsonContent('../const.json')
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
@@ -110,6 +112,53 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
           resources: {
             cpu: 2
             memory: '4.0Gi'
+          }
+        }
+      ]
+    }
+  }
+}
+
+resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
+  name: webMapContainerAppName
+  location: location
+
+  properties: {
+    environmentId: containerEnvironment.id
+    configuration: {
+      ingress: {
+        allowInsecure: false
+        targetPort: 80
+        external: true
+      }
+    }
+    template: {
+      volumes: [
+        {
+          // Web map
+          storageName: const.containerEnvMapWebStorageName
+          storageType: 'AzureFile'
+          name: const.containerEnvMapWebStorageName
+        }
+      ]
+      containers: [
+        {
+          name: 'web'
+          image: 'nginx:latest'
+          volumeMounts: [
+            {
+              mountPath: '/usr/share/nginx/html'
+              volumeName: const.containerEnvMapWebStorageName
+            }
+            {
+              mountPath: '/etc/nginx/conf.d/default.conf'
+              volumeName: const.containerEnvMapWebStorageName
+              subPath: 'nginx.conf'
+            }
+          ]
+          resources:{
+            cpu: '0.25'
+            memory: '0.5Gi'
           }
         }
       ]
