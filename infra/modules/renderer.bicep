@@ -119,15 +119,3 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
     }
   }
 }
-
-// Assign roles to container job
-var roleDefinitionName = '81a9662b-bebf-436f-a333-f67b29880f12'
-resource storageKeyOperatorServiceRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(rendererContainerJob.id, roleDefinitionName)
-  scope: storageAccount
-  properties: {
-    principalId: rendererContainerJob.identity.principalId
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionName)
-    principalType: 'ServicePrincipal'
-  }
-}
