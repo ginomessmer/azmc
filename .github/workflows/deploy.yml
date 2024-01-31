@@ -30,6 +30,8 @@ env:
     -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" \
     ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} \
     ${{ github.event.inputs.additional_params }} > whatif
+  DEPLOYMENT_NAME: ${{ github.run_id }}
+
 
 jobs:
   what_if:
@@ -96,5 +98,33 @@ jobs:
         uses: azure/cli@v1
         with:
           inlineScript: |
-            az deployment group create \
+            az deployment group create -n ${{ env.DEPLOYMENT_NAME }} \
               ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
+
+  update_container_apps:
+    runs-on: ubuntu-latest
+    name: Update Container Apps
+    needs: deploy
+    environment: ${{ github.event.inputs.environment }}
+    if: ${{ github.event.inputs.whatif_only == 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Container App
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            az deployment group show -n ${{ env.DEPLOYMENT_NAME }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.webMapContainerAppName.value -o tsv > containerApp
+      
+      - name: Update Container App
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            az containerapp update -n $(cat containerApp) -g ${{ secrets.AZURE_RG_NAME }} --source src/nginx-map

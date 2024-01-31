@@ -159,3 +159,7 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
     }
   }
 }
+
+output webMapContainerAppName string = webMapContainerApp.name
+output rendererContainerJobName string = rendererContainerJob.name
+`
