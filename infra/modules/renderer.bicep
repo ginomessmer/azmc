@@ -143,7 +143,7 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
       containers: [
         {
           name: 'web'
-          image: 'ghcr.io/ginomessmer/azmc/web-map'
+          image: 'nginx'
           volumeMounts: [
             {
               mountPath: '/usr/share/nginx/html'
