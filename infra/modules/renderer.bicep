@@ -150,9 +150,9 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
               volumeName: const.containerEnvMapWebStorageName
             }
             {
-              mountPath: '/etc/nginx/conf.d'
+              mountPath: '/etc/nginx/'
               volumeName: const.containerEnvMapWebStorageName
-              subPath: 'conf.d'
+              subPath: 'nginx'
             }
           ]
           resources:{
