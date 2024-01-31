@@ -15,9 +15,7 @@ jobs:
           - name: discord-bot
             dockerfile: ./src/discord-bot/Azmc.DiscordBot/Dockerfile
             context: ./src/discord-bot
-          - name: map-renderer
-            dockerfile: ./src/map-renderer/Dockerfile
-            context: ./src/map-renderer
+
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}/${{ matrix.image.name }}

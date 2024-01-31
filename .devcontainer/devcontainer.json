@@ -41,7 +41,8 @@
 			"extensions": [
 				"ms-azuretools.vscode-bicep",
 				"github.vscode-github-actions",
-				"ms-dotnettools.csdevkit"
+				"ms-dotnettools.csdevkit",
+				"ms-azuretools.vscode-azurestorage"
 			]
 		}
 	}
