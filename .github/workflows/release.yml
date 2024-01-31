@@ -17,7 +17,7 @@ jobs:
             dockerfile: ./src/discord-bot/Azmc.DiscordBot/Dockerfile
             context: ./src/discord-bot
           - name: web-map
-            dockerfile: ./src/web-map
+            dockerfile: ./src/web-map/Dockerfile
             context: ./src/web-map
     env:
       REGISTRY: ghcr.io
