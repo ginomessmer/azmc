@@ -149,11 +149,6 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
               mountPath: '/usr/share/nginx/html'
               volumeName: const.containerEnvMapWebStorageName
             }
-            {
-              mountPath: '/etc/nginx/'
-              volumeName: const.containerEnvMapWebStorageName
-              subPath: 'nginx'
-            }
           ]
           resources:{
             cpu: '0.25'
