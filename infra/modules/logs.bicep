@@ -1,6 +1,8 @@
 param location string
 param projectName string
 
+param retentionInDays int = 90
+
 var workspaceName = 'log-${projectName}'
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
@@ -10,6 +12,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
     sku: {
       name: 'PerGB2018'
     }
+    retentionInDays: retentionInDays
   }
 }
 

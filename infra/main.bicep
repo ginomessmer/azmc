@@ -55,6 +55,7 @@ module containerEnvironment 'modules/container-env.bicep' = {
     location: location
     projectName: name
     workspaceName: logs.outputs.workspaceName
+    minecraftServerStorageAccountName: storageServer.outputs.storageAccountServerName
   }
 }
 
@@ -86,9 +87,8 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
   params: {
     location: location
     projectName: name
-    renderingStorageAccountName: deployRenderer ? storageRenderer.outputs.storageAccountPublicMapName : ''
-    containerEnvironmentId: containerEnvironment.outputs.containerEnvironmentId
-    deployRendererJob: deployRenderer
+    containerEnvironmentName: containerEnvironment.outputs.containerEnvironmentName
+    mapRendererStorageAccountName: storageRenderer.outputs.storageAccountPublicMapName
   }
 }
 
@@ -145,3 +145,5 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
 output minecraftServerContainerGroupName string = server.outputs.containerGroupName
 output minecraftServerFqdn string = server.outputs.containerGroupFqdn
 output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl)   : null
+
+output webMapContainerAppName string = deployRenderer ? renderer.outputs.webMapContainerAppName : ''

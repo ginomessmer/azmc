@@ -1,46 +1,61 @@
 param location string
 param projectName string
 
-param deployRendererJob bool
+param containerEnvironmentName string
+param mapRendererStorageAccountName string = ''
 
-param renderingStorageAccountName string
+var rendererContainerJobName = 'cj-${projectName}-renderer'
+var renderingContainerImage = 'ghcr.io/bluemap-minecraft/bluemap:latest'
 
-param containerEnvironmentId string
+var webMapContainerAppName = 'ca-${projectName}-map-web'
 
-var rendererContainerJobName = 'caj-${projectName}-renderer'
+var const = loadJsonContent('../const.json')
 
-var renderingContainerImage = 'ghcr.io/ginomessmer/azmc/map-renderer:main'
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+  name: mapRendererStorageAccountName
+}
 
+resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-preview' existing = {
+  name: containerEnvironmentName
 
-// resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-//   name: '${containerEnvironmentName}-diag'
-//   scope: containerEnvironment
-//   properties: {
-//     workspaceId: workspace.id
-//     logs: [
-//       {
-//         category: 'ContainerAppConsoleLogs'
-//         enabled: true
-//       }
-//       {
-//         category: 'ContainerAppSystemLogs'
-//         enabled: true
-//       }
-//     ]
-//   }
-// }
+  // Web map
+  resource mapWebStorage 'storages' =  {
+    name: const.containerEnvMapWebStorageName
+    properties: {
+      azureFile: {
+        accessMode: 'ReadWrite'
+        shareName: const.renderer.webShareName
+        accountName: storageAccount.name
+        accountKey: storageAccount.listKeys().keys[0].value
+      }
+    }
+  }
+
+  // Blue map
+  resource blueMapStorage 'storages' = {
+    name: const.containerEnvBlueMapStorageName
+    properties: {
+      azureFile: {
+        accessMode: 'ReadWrite'
+        shareName: const.renderer.blueMapShareName
+        accountName: storageAccount.name
+        accountKey: storageAccount.listKeys().keys[0].value
+      }
+    }
+  }
+}
 
 // Container Job for renderer
-resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = if (deployRendererJob) {
+resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
   name: rendererContainerJobName
   location: location
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
-    environmentId: containerEnvironmentId
+    environmentId: containerEnvironment.id
     configuration: {
-      replicaTimeout: 1800
+      replicaTimeout: 3600
       triggerType: 'schedule'
       replicaRetryLimit: 0
       scheduleTriggerConfig: {
@@ -48,24 +63,52 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = if (deployRender
       }
     }
     template: {
+      volumes: [
+        {
+          // Minecraft server
+          storageName: const.containerEnvMinecraftServerStorageName
+          storageType: 'AzureFile'
+          name: const.containerEnvMinecraftServerStorageName
+        }
+        {
+          // Web map
+          storageName: const.containerEnvMapWebStorageName
+          storageType: 'AzureFile'
+          name: const.containerEnvMapWebStorageName
+        }
+        {
+          // Blue map
+          storageName: const.containerEnvBlueMapStorageName
+          storageType: 'AzureFile'
+          name: const.containerEnvBlueMapStorageName
+        }
+      ]
       containers: [
         {
-          name: 'renderer'
-          image: renderingContainerImage
-          env: [
+          volumeMounts: [
             {
-              name: 'AZURE_STORAGE_ACCOUNT'
-              value: renderingStorageAccountName
+              mountPath: '/app/world'
+              subPath: 'world'
+              volumeName: const.containerEnvMinecraftServerStorageName
             }
             {
-              name: 'AZURE_STORAGE_ACCOUNT_RG_NAME'
-              value: resourceGroup().name
+              mountPath: '/app/web'
+              volumeName: const.containerEnvMapWebStorageName
             }
             {
-              name: 'AZURE_LOGIN_TYPE'
-              value: 'managed-identity'
+              mountPath: '/app/config'
+              volumeName: const.containerEnvBlueMapStorageName
+              subPath: 'config'
+            }
+            {
+              mountPath: '/app/data'
+              volumeName: const.containerEnvBlueMapStorageName
+              subPath: 'data'
             }
           ]
+          name: 'renderer'
+          image: renderingContainerImage
+          args: [ '-r' ]
           resources: {
             cpu: 2
             memory: '4.0Gi'
@@ -76,17 +119,46 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-05-01' = if (deployRender
   }
 }
 
-// Assign roles to container job
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
-  name: renderingStorageAccountName
-}
-
-resource storageKeyOperatorServiceRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid('81a9662b-bebf-436f-a333-f67b29880f12', rendererContainerJob.id)
-  scope: storageAccount
+resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
+  name: webMapContainerAppName
+  location: location
   properties: {
-    principalId: rendererContainerJob.identity.principalId
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '81a9662b-bebf-436f-a333-f67b29880f12')
-    principalType: 'ServicePrincipal'
+    environmentId: containerEnvironment.id
+    configuration: {
+      ingress: {
+        allowInsecure: false
+        targetPort: 80
+        external: true
+      }
+    }
+    template: {
+      volumes: [
+        {
+          // Web map
+          storageName: const.containerEnvMapWebStorageName
+          storageType: 'AzureFile'
+          name: const.containerEnvMapWebStorageName
+        }
+      ]
+      containers: [
+        {
+          name: 'web'
+          image: 'nginx'
+          volumeMounts: [
+            {
+              mountPath: '/usr/share/nginx/html'
+              volumeName: const.containerEnvMapWebStorageName
+            }
+          ]
+          resources:{
+            cpu: '0.25'
+            memory: '0.5Gi'
+          }
+        }
+      ]
+    }
   }
 }
+
+output webMapContainerAppName string = webMapContainerApp.name
+output rendererContainerJobName string = rendererContainerJob.name
