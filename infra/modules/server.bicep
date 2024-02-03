@@ -24,6 +24,8 @@ param acceptEula bool
 // Log Analytics settings
 param workspaceName string
 
+param subnetId string
+
 var serverMountPath = '/data'
 var serverType = 'SPIGOT'
 
@@ -114,7 +116,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
       }
     }
     ipAddress: {
-      type: 'Public'
+      type: 'Private'
       dnsNameLabel: projectName
       ports: [
         {
@@ -123,6 +125,11 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
         }
       ]
     }
+    subnetIds: [
+      {
+        id: subnetId
+      }
+    ]
   }
 }
 

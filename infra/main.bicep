@@ -23,6 +23,15 @@ param discordBotToken string = ''
 @description('Automatically shut down the server at midnight.')
 param deployAutoShutdown bool = true
 
+// Network
+module network 'modules/network.bicep' = {
+  name: 'network'
+  params: {
+    location: location
+    projectName: name
+  }
+}
+
 // Server
 module storageServer 'modules/storage-server.bicep' = {
   name: 'storageServer'
@@ -45,6 +54,7 @@ module server 'modules/server.bicep' = {
     serverStorageAccountName: storageServer.outputs.storageAccountServerName
     serverShareName: storageServer.outputs.storageAccountFileShareServerName
     workspaceName: logs.outputs.workspaceName
+    subnetId: network.outputs.subnetMinecraftServerId
   }
 }
 
