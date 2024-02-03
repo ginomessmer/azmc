@@ -43,7 +43,9 @@ resource loadBalancer 'Microsoft.Network/loadBalancers@2023-06-01' = {
       {
         name: 'FrontendIPConfiguration'
         properties: {
-          publicIPAddress: publicIp
+          publicIPAddress: {
+            id: publicIp.id
+          }
         }
       }
     ]
