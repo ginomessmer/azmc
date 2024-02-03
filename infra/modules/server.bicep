@@ -116,7 +116,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
       }
     }
     ipAddress: {
-      type: 'Private'
+      type: 'Public'
       dnsNameLabel: projectName
       ports: [
         {
