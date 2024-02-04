@@ -172,7 +172,7 @@ resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (useCdn) {
   }
   
   resource endpoint 'endpoints' = {
-    name: projectName
+    name: '${projectName}-map'
     location: 'Global'
     properties: {
       originHostHeader: webMapContainerApp.properties.latestRevisionFqdn
