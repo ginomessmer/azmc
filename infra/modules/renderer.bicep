@@ -4,6 +4,9 @@ param projectName string
 param containerEnvironmentName string
 param mapRendererStorageAccountName string = ''
 
+@description('Whether to use CDN for the web map. This can improve performance, enables caching and supports compression, but may incur additional costs.')
+param useCdn bool = true
+
 var rendererContainerJobName = 'cj-${projectName}-renderer'
 var renderingContainerImage = 'ghcr.io/bluemap-minecraft/bluemap:latest'
 
@@ -161,7 +164,7 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
   }
 }
 
-resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = {
+resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (useCdn) {
   name: cdnName
   location: 'Global'
   sku: {
@@ -169,7 +172,7 @@ resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = {
   }
   
   resource endpoint 'endpoints' = {
-    name: 'map'
+    name: projectName
     location: 'Global'
     properties: {
       originHostHeader: webMapContainerApp.properties.latestRevisionFqdn
@@ -200,3 +203,5 @@ resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = {
 
 output webMapContainerAppName string = webMapContainerApp.name
 output rendererContainerJobName string = rendererContainerJob.name
+
+output webMapFqdn string = useCdn ? cdn::endpoint.properties.hostName : webMapContainerApp.properties.latestRevisionFqdn

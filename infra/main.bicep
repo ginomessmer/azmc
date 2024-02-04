@@ -146,4 +146,4 @@ output minecraftServerContainerGroupName string = server.outputs.containerGroupN
 output minecraftServerFqdn string = server.outputs.containerGroupFqdn
 output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl)   : null
 
-output webMapContainerAppName string = deployRenderer ? renderer.outputs.webMapContainerAppName : ''
+output webMapFqdn string = deployRenderer ? renderer.outputs.webMapFqdn : ''
