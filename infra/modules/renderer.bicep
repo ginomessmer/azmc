@@ -8,6 +8,7 @@ var rendererContainerJobName = 'cj-${projectName}-renderer'
 var renderingContainerImage = 'ghcr.io/bluemap-minecraft/bluemap:latest'
 
 var webMapContainerAppName = 'ca-${projectName}-map-web'
+var cdnName = 'cdn-${projectName}-map-web'
 
 var const = loadJsonContent('../const.json')
 
@@ -153,6 +154,43 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
           resources:{
             cpu: '0.25'
             memory: '0.5Gi'
+          }
+        }
+      ]
+    }
+  }
+}
+
+resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = {
+  name: cdnName
+  location: 'Global'
+  sku: {
+    name: 'Standard_Microsoft'
+  }
+  
+  resource endpoint 'endpoints' = {
+    name: 'map'
+    location: 'Global'
+    properties: {
+      originHostHeader: webMapContainerApp.properties.latestRevisionFqdn
+      contentTypesToCompress: [
+        'image/png'
+        'application/json'
+      ]
+      isCompressionEnabled: true
+      isHttpsAllowed: true
+      queryStringCachingBehavior: 'UseQueryString'
+      origins: [
+        {
+          name: 'map'
+          properties: {
+            hostName: webMapContainerApp.properties.latestRevisionFqdn
+            httpPort: 80
+            httpsPort: 443
+            originHostHeader: webMapContainerApp.properties.latestRevisionFqdn
+            priority: 1
+            weight: 1000
+            enabled: true
           }
         }
       ]
