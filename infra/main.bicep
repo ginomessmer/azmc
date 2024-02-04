@@ -10,6 +10,8 @@ param deployDashboard bool = true
 
 @description('Deploy the map renderer module (EXPERIMENTAL).')
 param deployRenderer bool = false
+@description('Use the CDN to serve the rendered map. If false, the rendered map will be served from the Container App.')
+param useCdn bool = true
 
 @description('Deploy the Discord bot module. Make sure to supply the public key and token.')
 param deployDiscordBot bool = false
@@ -89,6 +91,7 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
     projectName: name
     containerEnvironmentName: containerEnvironment.outputs.containerEnvironmentName
     mapRendererStorageAccountName: storageRenderer.outputs.storageAccountPublicMapName
+    useCdn: useCdn
   }
 }
 
@@ -146,4 +149,4 @@ output minecraftServerContainerGroupName string = server.outputs.containerGroupN
 output minecraftServerFqdn string = server.outputs.containerGroupFqdn
 output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl)   : null
 
-output webMapContainerAppName string = deployRenderer ? renderer.outputs.webMapContainerAppName : ''
+output webMapFqdn string = deployRenderer ? renderer.outputs.webMapFqdn : ''
