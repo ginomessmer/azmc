@@ -199,6 +199,35 @@ resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (useCdn) {
           }
         }
       ]
+      deliveryPolicy: {
+        rules: [
+          {
+            name: 'RedirectToHttps'
+            conditions: [
+              {
+                name: 'RequestScheme'
+                parameters: {
+                  operator: 'Equal'
+                  typeName: 'DeliveryRuleRequestSchemeConditionParameters'
+                  matchValues: [ 'HTTP' ]
+                  negateCondition: false
+                }
+              }
+            ]
+            actions: [
+              {
+                name: 'UrlRedirect'
+                parameters: {
+                  redirectType: 'Found'
+                  typeName: 'DeliveryRuleUrlRedirectActionParameters'
+                  destinationProtocol: 'Https'
+                }
+              }
+            ]
+            order: 1
+          }
+        ]
+      }
     }
 
     resource domain 'customDomains' = if (webMapHostName != '') {
