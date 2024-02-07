@@ -13,6 +13,8 @@ param deployRenderer bool = false
 @description('Use the CDN to serve the rendered map. If false, the rendered map will be served from the Container App.')
 param useCdn bool = true
 
+param mapHostName string = ''
+
 @description('Deploy the Discord bot module. Make sure to supply the public key and token.')
 param deployDiscordBot bool = false
 @description('The public key for the Discord bot. Only required if deployDiscordBot is true.')
@@ -92,6 +94,7 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
     containerEnvironmentName: containerEnvironment.outputs.containerEnvironmentName
     mapRendererStorageAccountName: storageRenderer.outputs.storageAccountPublicMapName
     useCdn: useCdn
+    webMapHostName: mapHostName
   }
 }
 

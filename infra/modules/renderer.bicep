@@ -7,6 +7,8 @@ param mapRendererStorageAccountName string = ''
 @description('Whether to use CDN for the web map. This can improve performance, enables caching and supports compression, but may incur additional costs.')
 param useCdn bool = true
 
+param webMapHostName string = ''
+
 var rendererContainerJobName = 'cj-${projectName}-renderer'
 var renderingContainerImage = 'ghcr.io/bluemap-minecraft/bluemap:latest'
 
@@ -175,7 +177,7 @@ resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (useCdn) {
     name: '${projectName}-map'
     location: 'Global'
     properties: {
-      originHostHeader: webMapContainerApp.properties.latestRevisionFqdn
+      originHostHeader: webMapContainerApp.properties.configuration.ingress.fqdn
       contentTypesToCompress: [
         'image/png'
         'application/json'
@@ -187,16 +189,23 @@ resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (useCdn) {
         {
           name: 'map'
           properties: {
-            hostName: webMapContainerApp.properties.latestRevisionFqdn
+            hostName: webMapContainerApp.properties.configuration.ingress.fqdn
             httpPort: 80
             httpsPort: 443
-            originHostHeader: webMapContainerApp.properties.latestRevisionFqdn
+            originHostHeader: webMapContainerApp.properties.configuration.ingress.fqdn
             priority: 1
             weight: 1000
             enabled: true
           }
         }
       ]
+    }
+
+    resource domain 'customDomains' = if (webMapHostName != '') {
+      name: webMapHostName
+      properties: {
+        hostName: webMapHostName
+      }
     }
   }
 }
