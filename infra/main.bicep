@@ -8,10 +8,12 @@ param acceptEula bool
 @description('Deploy the built-in Azure Portal dashboards.')
 param deployDashboard bool = true
 
-@description('Deploy the map renderer module (EXPERIMENTAL).')
+@description('Deploy the map renderer module.')
 param deployRenderer bool = false
 @description('Use the CDN to serve the rendered map. If false, the rendered map will be served from the Container App.')
 param useCdn bool = true
+@description('The host name for the web map.')
+param mapHostName string = ''
 
 @description('Deploy the Discord bot module. Make sure to supply the public key and token.')
 param deployDiscordBot bool = false
@@ -92,6 +94,7 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
     containerEnvironmentName: containerEnvironment.outputs.containerEnvironmentName
     mapRendererStorageAccountName: storageRenderer.outputs.storageAccountPublicMapName
     useCdn: useCdn
+    webMapHostName: mapHostName
   }
 }
 
