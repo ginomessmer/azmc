@@ -202,7 +202,7 @@ resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (useCdn) {
     }
 
     resource domain 'customDomains' = if (webMapHostName != '') {
-      name: webMapHostName
+      name: replace(webMapHostName, '.', '-')
       properties: {
         hostName: webMapHostName
       }
