@@ -7,8 +7,10 @@ param location string = resourceGroup().location
 param repo string = 'ginomessmer/azmc'
 param environment string = 'development'
 
+var const = loadJsonContent('../const.json')
+
 var subject = 'repo:${repo}:environment:${environment}'
-var identityName = 'id-${name}-gh-actions'
+var identityName = '${const.abbr.managedIdentity}-${name}-gh-actions'
 
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' = {
