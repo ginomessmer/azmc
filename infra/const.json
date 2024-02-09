@@ -8,5 +8,18 @@
     "renderer": {
         "webShareName": "web",
         "blueMapShareName": "bluemap"
-    }   
+    },
+    "abbr": {
+        "containerApp": "ca",
+        "containerInstance": "ci",
+        "containerJob": "cj",
+        "containerEnv": "cae",
+        "storageAccount": "st",
+        "logAnalyticsWorkspace": "log",
+        "appInsights": "ai",
+        "cdn": "cdn",
+        "dashboard": "dbrd",
+        "logicApp": "logic",
+        "managedIdentity": "id"
+    }
 }

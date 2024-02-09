@@ -5,12 +5,14 @@ param minecraftServerContainerInstanceName string
 param discordBotContainerAppId string
 param serverStorageAccountId string
 
+var const = loadJsonContent('../const.json')
+
 resource minecraftServerContainerInstance 'Microsoft.ContainerInstance/containerGroups@2023-05-01' existing = {
   name: minecraftServerContainerInstanceName
 }
 
 resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
-  name: 'dbrd-${projectName}'
+  name: '${const.abbr.dashboard}-${projectName}'
   location: location
   tags: {
     'hidden-title': 'Minecraft Server Dashboard'

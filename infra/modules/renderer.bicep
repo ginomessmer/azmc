@@ -9,11 +9,11 @@ param useCdn bool = true
 
 param webMapHostName string = ''
 
-var rendererContainerJobName = 'cj-${projectName}-renderer'
+var rendererContainerJobName = '${const.abbr.containerJob}-${projectName}-renderer'
 var renderingContainerImage = 'ghcr.io/bluemap-minecraft/bluemap:latest'
 
-var webMapContainerAppName = 'ca-${projectName}-map-web'
-var cdnName = 'cdn-${projectName}-map-web'
+var webMapContainerAppName = '${const.abbr.containerApp}-${projectName}-map-web'
+var cdnName = '${const.abbr.cdn}-${projectName}-map-web'
 
 var const = loadJsonContent('../const.json')
 

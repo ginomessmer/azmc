@@ -21,7 +21,9 @@ param discordBotToken string
 @description('The role ID of the role that is allowed to launch the container app. This is used to allow the bot to launch the container app.')
 param containerLaunchManagerRoleId string
 
-var containerAppName = 'ca-${projectName}-discord-bot'
+var const = loadJsonContent('../const.json')
+
+var containerAppName = '${const.abbr.containerApp}-${projectName}-discord-bot'
 
 
 resource minecraftServerContainerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01' existing = {

@@ -6,7 +6,7 @@ param workspaceName string
 
 param minecraftServerStorageAccountName string
 
-var containerEnvironmentName = 'cae-${projectName}'
+var containerEnvironmentName = '${const.abbr.containerEnv}-${projectName}'
 
 var const = loadJsonContent('../const.json')
 

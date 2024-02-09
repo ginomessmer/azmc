@@ -17,7 +17,9 @@ param recurrence object = {
   }
 }
 
-var logicAppName = 'logic-${projectName}-auto-shutdown'
+var const = loadJsonContent('../const.json')
+
+var logicAppName = '${const.abbr.logicApp}-${projectName}-auto-shutdown'
 
 resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01' existing = {
   name: containerGroupName
