@@ -1,0 +1,43 @@
+name: Destroy
+
+on:
+  workflow_dispatch: 
+    inputs:
+      environment:
+        description: 'Name of the environment'
+        required: true
+        default: development
+        type: environment
+      resource:
+        description: 'Resource to destroy'
+        required: true
+        type: choice
+        default: server
+        options:
+          - server
+
+permissions: 
+  id-token: write
+
+
+jobs:
+  destroy_server:
+    runs-on: ubuntu-latest
+    name: Destroy Server
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Container
+        id: get_server
+        run: |
+          container_name=$(az deployment group show -g ${{ secrets.AZURE_RG_NAME }} -n server -o tsv --query properties.outputs.containerGroupName.value)
+          echo "::set-output name=container_name::$container_name"
+
+      - name: Delete Container
+        run: az container delete -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.get_server.outputs.container_name }} -y
