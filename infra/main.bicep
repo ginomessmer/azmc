@@ -1,13 +1,19 @@
 param location string = resourceGroup().location
 param name string = 'azmc'
 
+// Server
 @description('Accept the Minecraft Server EULA.')
 @allowed([true])
 param acceptEula bool
 
+@description('The memory size of the server in GB. Increase for large servers or maps.')
+param serverMemorySize int = 3
+
+// Dashboard
 @description('Deploy the built-in Azure Portal dashboards.')
 param deployDashboard bool = true
 
+// Web map
 @description('Deploy the map renderer module.')
 param deployRenderer bool = false
 @description('Use the CDN to serve the rendered map. If false, the rendered map will be served from the Container App.')
@@ -15,6 +21,7 @@ param useCdn bool = true
 @description('The host name for the web map.')
 param mapHostName string = ''
 
+// Discord bot
 @description('Deploy the Discord bot module. Make sure to supply the public key and token.')
 param deployDiscordBot bool = false
 @description('The public key for the Discord bot. Only required if deployDiscordBot is true.')
@@ -24,6 +31,7 @@ param discordBotPublicKey string = ''
 @secure()
 param discordBotToken string = ''
 
+// Auto shutdown
 @description('Automatically shut down the server at midnight.')
 param deployAutoShutdown bool = true
 
@@ -49,6 +57,7 @@ module server 'modules/server.bicep' = {
     serverStorageAccountName: storageServer.outputs.storageAccountServerName
     serverShareName: storageServer.outputs.storageAccountFileShareServerName
     workspaceName: logs.outputs.workspaceName
+    memorySize: serverMemorySize
   }
 }
 
