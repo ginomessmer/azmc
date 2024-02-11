@@ -32,5 +32,5 @@ resource storageAccountResources 'Microsoft.Storage/storageAccounts@2023-01-01' 
 }
 
 output storageAccountName string = storageAccountResources.name
-output storageAccountResourcePackEndpoint string = '${storageAccountResources.properties.primaryEndpoints.blob}/${storageAccountResources::blobServices::resourcePackContainer.name}'
+output storageAccountResourcePackEndpoint string = '${storageAccountResources.properties.primaryEndpoints.blob}${storageAccountResources::blobServices::resourcePackContainer.name}'
 
