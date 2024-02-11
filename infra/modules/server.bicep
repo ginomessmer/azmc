@@ -21,6 +21,9 @@ param isAutostopEnabled string = 'TRUE'
 @description('Accept the Minecraft EULA.')
 param acceptEula bool
 
+@description('The URL of the Minecraft resource pack.')
+param resourcePackUrl string
+
 // Log Analytics settings
 param workspaceName string
 
@@ -59,6 +62,10 @@ var minecraftContainer = {
       {
         name: 'MEMORY'
         value: '${memorySize}G'
+      }
+      {
+        name: 'RESOURCE_PACK'
+        value: resourcePackUrl != '' ? resourcePackUrl : ''
       }
     ]
     volumeMounts: [

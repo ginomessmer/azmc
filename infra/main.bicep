@@ -31,6 +31,15 @@ param discordBotPublicKey string = ''
 @secure()
 param discordBotToken string = ''
 
+// Resources
+@description('Deploy the services required to host resources, such as resource packs.')
+param deployResources bool = true
+@description('The file name of the resource pack to deploy. Make sure to upload the resource pack to the storage account using the same name. Only required if deployResources is true.')
+param resourcePackName string = ''
+
+@description('Determines if the resource pack is hosted externally. If true, the resource pack will be linked to the Minecraft server. If false, AZMC assumes that the resource pack is hosted on the deployed resources storage account.')
+var isResourcePackExternal = startsWith(resourcePackName, 'https://')
+
 // Auto shutdown
 @description('Automatically shut down the server at midnight.')
 param deployAutoShutdown bool = true
@@ -58,6 +67,10 @@ module server 'modules/server.bicep' = {
     serverShareName: storageServer.outputs.storageAccountFileShareServerName
     workspaceName: logs.outputs.workspaceName
     memorySize: serverMemorySize
+    resourcePackUrl: (deployResources && resourcePackName != '') || isResourcePackExternal
+      ? isResourcePackExternal
+        ? resourcePackName : '${resources.outputs.storageAccountResourcePackEndpoint}/${resourcePackName}'
+      : ''
   }
 }
 
@@ -139,6 +152,15 @@ module autoShutdown 'modules/auto-shutdown.bicep' = if (deployAutoShutdown) {
   }
 }
 
+// Resources
+module resources 'modules/storage-resources.bicep' = if(deployResources) {
+  name: 'resources'
+  params: {
+    location: location
+    projectName: name
+  }
+}
+
 // Access management
 module roles 'modules/roles.bicep' = {
   name: 'roles'
@@ -159,6 +181,6 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
 
 output minecraftServerContainerGroupName string = server.outputs.containerGroupName
 output minecraftServerFqdn string = server.outputs.containerGroupFqdn
-output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl)   : null
+output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl) : null
 
 output webMapFqdn string = deployRenderer ? renderer.outputs.webMapFqdn : ''
