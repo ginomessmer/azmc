@@ -1,4 +1,5 @@
 # Azure Minecraft (Minecraft on Azure)
+
 ## Introduction
 
 Azure Minecraft is a project that aims to provide a deployment template for hosting your own Minecraft server on Azure. It also includes a management bot for Discord, allowing you to easily manage and interact with your Minecraft server.
@@ -24,6 +25,27 @@ To get started with Azure Minecraft, follow these steps:
 
 ### Deploy to Microsoft Azure
 
+## Terminology
+
+### Server
+
+The Minecraft server that has the underlying compute platform and server data files. The server data files include the worlds.
+
+### Bot
+
+A type of user interface that allows server interactions via text commands.
+
+### World
+
+A Minecraft world, e.g. `overworld`, `nether`, `the_end`.
+
+### Map
+
+A web-based map representation of a world.
+
+### Renderer
+
+The component that creates a map presentation of a world.
 
 ## Contributing
 
