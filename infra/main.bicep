@@ -37,6 +37,9 @@ param deployResources bool = true
 @description('The file name of the resource pack to deploy. Make sure to upload the resource pack to the storage account using the same name. Only required if deployResources is true.')
 param resourcePackName string = ''
 
+@description('Determines if the resource pack is hosted externally. If true, the resource pack will be linked to the Minecraft server. If false, AZMC assumes that the resource pack is hosted on the deployed resources storage account.')
+var isResourcePackExternal = startsWith(resourcePackName, 'https://')
+
 // Auto shutdown
 @description('Automatically shut down the server at midnight.')
 param deployAutoShutdown bool = true
@@ -64,7 +67,10 @@ module server 'modules/server.bicep' = {
     serverShareName: storageServer.outputs.storageAccountFileShareServerName
     workspaceName: logs.outputs.workspaceName
     memorySize: serverMemorySize
-    resourcePackUrl: (deployResources && resourcePackName != '') ? '${resources.outputs.storageAccountResourcePackEndpoint}/${resourcePackName}' : ''
+    resourcePackUrl: (deployResources && resourcePackName != '') || isResourcePackExternal
+      ? isResourcePackExternal
+        ? resourcePackName : '${resources.outputs.storageAccountResourcePackEndpoint}/${resourcePackName}'
+      : ''
   }
 }
 
