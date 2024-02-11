@@ -7,14 +7,9 @@ using Discord.Rest;
 
 namespace Azmc.DiscordBot.Modules;
 
-public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
+public class ServerModule(ContainerGroupResource containerGroupResource) : RestInteractionModuleBase<RestInteractionContext>
 {
-    private readonly ContainerGroupResource _containerGroupResource;
-
-    public ServerModule(ContainerGroupResource containerGroupResource)
-    {
-        _containerGroupResource = containerGroupResource;
-    }
+    private readonly ContainerGroupResource _containerGroupResource = containerGroupResource;
 
     [SlashCommand("status", "Gets the status of the Minecraft server")]
     public Task StatusAsync()
