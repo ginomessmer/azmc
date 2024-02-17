@@ -1,5 +1,6 @@
-param location string = resourceGroup().location
 param name string = 'azmc'
+
+param resourceGroupName string = az.resourceGroup().name
 
 // Server
 @description('Accept the Minecraft Server EULA.')
@@ -44,9 +45,19 @@ var isResourcePackExternal = startsWith(resourcePackName, 'https://')
 @description('Automatically shut down the server at midnight.')
 param deployAutoShutdown bool = true
 
+
+// Resource group
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2023-07-01' existing = {
+  name: resourceGroupName
+  scope: subscription()
+}
+
+var location = resourceGroup.location
+
 // Server
 module storageServer 'modules/storage-server.bicep' = {
   name: 'storageServer'
+  scope: resourceGroup
   params: {
     location: location
     projectName: name
@@ -55,6 +66,7 @@ module storageServer 'modules/storage-server.bicep' = {
 
 module server 'modules/server.bicep' = {
   name: 'server'
+  scope: resourceGroup
   dependsOn: [
     storageServer
     logs
@@ -77,6 +89,7 @@ module server 'modules/server.bicep' = {
 // Container environment
 module containerEnvironment 'modules/container-env.bicep' = {
   name: 'containerEnvironment'
+  scope: resourceGroup
   params: {
     location: location
     projectName: name
@@ -88,6 +101,7 @@ module containerEnvironment 'modules/container-env.bicep' = {
 // Operational
 module logs 'modules/logs.bicep' = {
   name: 'logs'
+  scope: resourceGroup
   params: {
     location: location
     projectName: name
@@ -97,6 +111,7 @@ module logs 'modules/logs.bicep' = {
 // Renderer
 module storageRenderer 'modules/storage-map.bicep' = if(deployRenderer) {
   name: 'storageRenderer'
+  scope: resourceGroup
   params: {
     location: location
     projectName: name
@@ -110,6 +125,7 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
     logs
   ]
   name: 'rendering'
+  scope: resourceGroup
   params: {
     location: location
     projectName: name
@@ -127,6 +143,7 @@ module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBo
     logs
   ]
   name: 'discordBot'
+  scope: resourceGroup
   params: {
     location: location
     projectName: name
@@ -143,6 +160,7 @@ module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBo
 // Auto shutdown
 module autoShutdown 'modules/auto-shutdown.bicep' = if (deployAutoShutdown) {
   name: 'autoShutdown'
+  scope: resourceGroup
   params: {
     location: location
     projectName: name
@@ -155,6 +173,7 @@ module autoShutdown 'modules/auto-shutdown.bicep' = if (deployAutoShutdown) {
 // Resources
 module resources 'modules/storage-resources.bicep' = if(deployResources) {
   name: 'resources'
+  scope: resourceGroup
   params: {
     location: location
     projectName: name
@@ -164,11 +183,13 @@ module resources 'modules/storage-resources.bicep' = if(deployResources) {
 // Access management
 module roles 'modules/roles.bicep' = {
   name: 'roles'
+  scope: resourceGroup
 }
 
 // Dashboard
 module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
   name: 'dashboards'
+  scope: resourceGroup
   params: {
     location: location
     projectName: name
