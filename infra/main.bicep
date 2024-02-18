@@ -8,7 +8,7 @@ param acceptEula bool
 @description('The memory size of the server in GB. Increase for large servers or maps.')
 param serverMemorySize int = 3
 @description('The type of server to deploy. Check the documentation for the list of supported server types: https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/. Commonly used types are SPIGOT, PAPER, and FORGE.')
-param serverType string = 'SPIGOT'
+param serverType string = 'PAPER'
 
 // Dashboard
 @description('Deploy the built-in Azure Portal dashboards.')
