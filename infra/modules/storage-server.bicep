@@ -38,7 +38,7 @@ resource storageAccountServer 'Microsoft.Storage/storageAccounts@2023-01-01' = {
     resource serverFileShare 'shares' = {
       name: serverFileShareName
       properties: {
-        accessTier: 'Hot'
+        accessTier: 'TransactionOptimized'
         shareQuota: 256
       }
     }
