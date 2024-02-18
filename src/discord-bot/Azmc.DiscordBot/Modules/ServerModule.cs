@@ -1,3 +1,4 @@
+using Azmc.DiscordBot.Resources;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ContainerInstance;
@@ -7,19 +8,24 @@ using Discord.Rest;
 
 namespace Azmc.DiscordBot.Modules;
 
+public class RendererModule : RestInteractionModuleBase<RestInteractionContext>
+{
+
+}
+
 public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
 {
-    private readonly ContainerGroupResource _containerGroupResource;
+    private readonly AzmcServerResource _server;
 
-    public ServerModule(ContainerGroupResource containerGroupResource)
+    public ServerModule(AzmcServerResource containerGroupResource)
     {
-        _containerGroupResource = containerGroupResource;
+        _server = containerGroupResource;
     }
 
     [SlashCommand("status", "Gets the status of the Minecraft server")]
     public Task StatusAsync()
     {
-        var state = _containerGroupResource.Data.Containers.First().InstanceView.CurrentState;
+        var state = _server.Data.Containers.First().InstanceView.CurrentState;
         return RespondAsync(embed: new EmbedBuilder()
             .WithTitle("Server status")
             .WithFields(new EmbedFieldBuilder[]
@@ -45,7 +51,7 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
     public async Task StartAsync()
     {
         await DeferAsync();
-        await _containerGroupResource.StartAsync(Azure.WaitUntil.Completed);
+        await _server.StartAsync(Azure.WaitUntil.Completed);
         await FollowupAsync(embed: new EmbedBuilder()
             .WithTitle("Server started")
             .WithFooter("It may take a few additional minutes until the server is fully initialized.")
@@ -56,7 +62,7 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
     [SlashCommand("stop", "Stops the Minecraft server")]
     public async Task StopAsync()
     {
-        await _containerGroupResource.StopAsync();
+        await _server.StopAsync();
         await RespondAsync(embed: new EmbedBuilder()
             .WithTitle("Server stopped")
             .WithColor(Color.Red)

@@ -1,5 +1,6 @@
 using System.Net.Mime;
 using Azmc.DiscordBot;
+using Azmc.DiscordBot.Resources;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -30,12 +31,12 @@ builder.Services
 // Container instance
 builder.Services
     .AddSingleton<ArmClient>(_ => new(new DefaultAzureCredential()))
-    .AddSingleton<ContainerGroupResource>(services =>
+    .AddSingleton<AzmcServerResource>(services =>
     {
         var client = services.GetRequiredService<ArmClient>();
         var options = services.GetRequiredService<IOptions<AzureOptions>>();
         var resource = client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ContainerGroupResourceId)).Get();
-        return resource;
+        return (AzmcServerResource) resource;
     });
 
 // Configuration
