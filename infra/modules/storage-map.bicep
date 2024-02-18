@@ -28,10 +28,16 @@ resource storageAccountPublicMap 'Microsoft.Storage/storageAccounts@2023-01-01' 
 
     resource webShare 'shares' = {
       name: const.renderer.webShareName
+      properties: {
+        shareQuota: 256
+      }
     }
 
     resource blueMapShare 'shares' = {
       name: const.renderer.blueMapShareName
+      properties: {
+        shareQuota: 32
+      }
     }
   }
 }
