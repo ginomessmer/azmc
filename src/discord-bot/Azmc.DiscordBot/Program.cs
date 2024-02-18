@@ -1,6 +1,5 @@
-using System.Net.Mime;
 using Azmc.DiscordBot;
-using Azmc.DiscordBot.Resources;
+using Azmc.DiscordBot.Services;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -8,14 +7,15 @@ using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.ContainerInstance;
 using Discord.Interactions;
 using Discord.Rest;
-using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.Options;
+using System.Net.Mime;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
 // Discord services
 builder.Services
-    .AddSingleton<DiscordRestConfig>(_ => new() {
+    .AddSingleton<DiscordRestConfig>(_ => new()
+    {
         APIOnRestInteractionCreation = true
     })
     .AddSingleton<DiscordRestClient>();

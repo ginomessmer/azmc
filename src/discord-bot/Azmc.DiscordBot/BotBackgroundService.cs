@@ -1,6 +1,5 @@
 using Azmc.DiscordBot.Modules;
 using Discord.Interactions;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Azmc.DiscordBot;

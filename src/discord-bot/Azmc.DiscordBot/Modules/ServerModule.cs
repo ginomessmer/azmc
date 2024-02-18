@@ -1,4 +1,4 @@
-using Azmc.DiscordBot.Resources;
+using Azmc.DiscordBot.Services;
 using Discord;
 using Discord.Interactions;
 using Discord.Rest;

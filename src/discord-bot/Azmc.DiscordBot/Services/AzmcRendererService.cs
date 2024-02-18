@@ -1,6 +1,6 @@
 ﻿using Azure.ResourceManager.AppContainers;
 
-namespace Azmc.DiscordBot.Resources;
+namespace Azmc.DiscordBot.Services;
 
 public class AzmcRendererService(ContainerAppJobResource containerAppJobResource)
 {

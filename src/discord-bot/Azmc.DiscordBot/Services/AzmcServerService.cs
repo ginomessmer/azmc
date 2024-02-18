@@ -1,6 +1,6 @@
 ﻿using Azure.ResourceManager.ContainerInstance;
 
-namespace Azmc.DiscordBot.Resources;
+namespace Azmc.DiscordBot.Services;
 
 public class AzmcServerService(ContainerGroupResource containerGroupResource)
 {
