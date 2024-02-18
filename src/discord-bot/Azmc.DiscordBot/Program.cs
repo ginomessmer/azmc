@@ -4,6 +4,7 @@ using Azmc.DiscordBot.Resources;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
+using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.ContainerInstance;
 using Discord.Interactions;
 using Discord.Rest;
@@ -28,7 +29,7 @@ builder.Services
     })
     .AddSingleton<InteractionService>();
 
-// Container instance
+// Server (Container instance)
 builder.Services
     .AddSingleton<ArmClient>(_ => new(new DefaultAzureCredential()))
     .AddSingleton<AzmcServerResource>(services =>
@@ -37,6 +38,17 @@ builder.Services
         var options = services.GetRequiredService<IOptions<AzureOptions>>();
         var resource = client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ContainerGroupResourceId)).Get();
         return (AzmcServerResource) resource;
+    });
+
+
+// Renderer (Container app job)
+builder.Services
+    .AddSingleton<AzmcRendererResource>(services =>
+    {
+        var client = services.GetRequiredService<ArmClient>();
+        var options = services.GetRequiredService<IOptions<AzureOptions>>();
+        var resource = client.GetContainerAppJobResource(ResourceIdentifier.Parse(options.Value.RendererContainerAppJobResourceId)).Get();
+        return (AzmcRendererResource) resource;
     });
 
 // Configuration

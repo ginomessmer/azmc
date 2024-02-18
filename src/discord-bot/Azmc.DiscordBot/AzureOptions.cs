@@ -12,4 +12,8 @@ public class AzureOptions
     /// </summary>
     [Required]
     public string ContainerGroupResourceId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the resource ID of the renderer container app job.
+    public string RendererContainerAppJobResourceId { get; set; }
 }

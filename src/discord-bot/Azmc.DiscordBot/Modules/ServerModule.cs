@@ -1,17 +1,9 @@
 using Azmc.DiscordBot.Resources;
-using Azure.Core;
-using Azure.ResourceManager;
-using Azure.ResourceManager.ContainerInstance;
 using Discord;
 using Discord.Interactions;
 using Discord.Rest;
 
 namespace Azmc.DiscordBot.Modules;
-
-public class RendererModule : RestInteractionModuleBase<RestInteractionContext>
-{
-
-}
 
 public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
 {
