@@ -57,7 +57,7 @@ public class BotBackgroundService : BackgroundService
         using (_logger.BeginScope("Module loader"))
         {
             _logger.LogInformation("Loading modules...");
-            if (!string.IsNullOrEmpty(_azureOptions.Value.ContainerGroupResourceId))
+            if (!string.IsNullOrEmpty(_azureOptions.Value.ServerContainerGroupResourceId))
             {
                 _logger.LogInformation("Loading server module...");
                 await _interactionService.AddModuleAsync<ServerModule>(_serviceProvider);
