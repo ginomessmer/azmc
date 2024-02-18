@@ -5,23 +5,16 @@ using Discord.Rest;
 
 namespace Azmc.DiscordBot.Modules;
 
-public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
+public class ServerModule(AzmcServerResource server) : RestInteractionModuleBase<RestInteractionContext>
 {
-    private readonly AzmcServerResource _server;
-
-    public ServerModule(AzmcServerResource containerGroupResource)
-    {
-        _server = containerGroupResource;
-    }
-
     [SlashCommand("status", "Gets the status of the Minecraft server")]
     public Task StatusAsync()
     {
-        var state = _server.Data.Containers.First().InstanceView.CurrentState;
+        var state = server.AzureResource.Data.Containers.First().InstanceView.CurrentState;
         return RespondAsync(embed: new EmbedBuilder()
             .WithTitle("Server status")
-            .WithFields(new EmbedFieldBuilder[]
-            {
+            .WithFields(
+            [
                 new()
                 {
                     Name = "State",
@@ -34,7 +27,7 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
                     Value = state.ExitCode?.ToString() ?? "N/A",
                     IsInline = true
                 }
-            })
+            ])
             .WithColor(Color.Blue)
             .Build());
     }
@@ -43,7 +36,7 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
     public async Task StartAsync()
     {
         await DeferAsync();
-        await _server.StartAsync(Azure.WaitUntil.Completed);
+        await server.AzureResource.StartAsync(Azure.WaitUntil.Completed);
         await FollowupAsync(embed: new EmbedBuilder()
             .WithTitle("Server started")
             .WithFooter("It may take a few additional minutes until the server is fully initialized.")
@@ -54,7 +47,7 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
     [SlashCommand("stop", "Stops the Minecraft server")]
     public async Task StopAsync()
     {
-        await _server.StopAsync();
+        await server.AzureResource.StopAsync();
         await RespondAsync(embed: new EmbedBuilder()
             .WithTitle("Server stopped")
             .WithColor(Color.Red)

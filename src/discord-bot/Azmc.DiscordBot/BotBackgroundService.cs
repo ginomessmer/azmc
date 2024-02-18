@@ -1,3 +1,4 @@
+using Azmc.DiscordBot.Modules;
 using Discord.Interactions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -10,18 +11,21 @@ namespace Azmc.DiscordBot;
 public class BotBackgroundService : BackgroundService
 {
     private readonly InteractionService _interactionService;
-    private readonly IOptions<BotOptions> _options;
+    private readonly IOptions<BotOptions> _botOptions;
+    private readonly IOptions<AzureOptions> _azureOptions;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<BotBackgroundService> _logger;
 
     public BotBackgroundService(
         InteractionService interactionService,
-        IOptions<BotOptions> options,
+        IOptions<BotOptions> botOptions,
+        IOptions<AzureOptions> azureOptions,
         IServiceProvider serviceProvider,
         ILogger<BotBackgroundService> logger)
     {
         _interactionService = interactionService;
-        _options = options;
+        _botOptions = botOptions;
+        _azureOptions = azureOptions;
         _serviceProvider = serviceProvider;
         _logger = logger;
     }
@@ -47,14 +51,23 @@ public class BotBackgroundService : BackgroundService
         using (_logger.BeginScope("Login"))
         {
             _logger.LogInformation("Logging in...");
-            await _interactionService.RestClient.LoginAsync(Discord.TokenType.Bot, _options.Value.Token);
+            await _interactionService.RestClient.LoginAsync(Discord.TokenType.Bot, _botOptions.Value.Token);
             _logger.LogInformation("Logged in");
         }
 
         using (_logger.BeginScope("Module loader"))
         {
             _logger.LogInformation("Loading modules...");
-            await _interactionService.AddModulesAsync(typeof(BotBackgroundService).Assembly, _serviceProvider);
+            if (!string.IsNullOrEmpty(_azureOptions.Value.ContainerGroupResourceId))
+            {
+                _logger.LogInformation("Loading server module...");
+                await _interactionService.AddModuleAsync<ServerModule>(_serviceProvider);
+            }
+            if (!string.IsNullOrEmpty(_azureOptions.Value.RendererContainerAppJobResourceId))
+            {
+                _logger.LogInformation("Loading renderer module...");
+                await _interactionService.AddModuleAsync<RendererModule>(_serviceProvider);
+            }
             _logger.LogInformation("Loaded modules");
         }
 
@@ -62,7 +75,7 @@ public class BotBackgroundService : BackgroundService
         {
             _logger.LogInformation("Registering commands...");
 #if DEBUG
-            await _interactionService.RegisterCommandsToGuildAsync(_options.Value.DebugGuildId);
+            await _interactionService.RegisterCommandsToGuildAsync(_botOptions.Value.DebugGuildId);
 #else
             await _interactionService.RegisterCommandsGloballyAsync();
 #endif

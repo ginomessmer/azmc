@@ -37,7 +37,7 @@ builder.Services
         var client = services.GetRequiredService<ArmClient>();
         var options = services.GetRequiredService<IOptions<AzureOptions>>();
         var resource = client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ContainerGroupResourceId)).Get();
-        return (AzmcServerResource) resource;
+        return new AzmcServerResource(resource);
     });
 
 
@@ -48,7 +48,7 @@ builder.Services
         var client = services.GetRequiredService<ArmClient>();
         var options = services.GetRequiredService<IOptions<AzureOptions>>();
         var resource = client.GetContainerAppJobResource(ResourceIdentifier.Parse(options.Value.RendererContainerAppJobResourceId)).Get();
-        return (AzmcRendererResource) resource;
+        return new AzmcRendererResource(resource);
     });
 
 // Configuration
