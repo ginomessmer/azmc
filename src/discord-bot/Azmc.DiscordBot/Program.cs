@@ -36,7 +36,7 @@ builder.Services
     {
         var client = services.GetRequiredService<ArmClient>();
         var options = services.GetRequiredService<IOptions<AzureOptions>>();
-        var resource = client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ContainerGroupResourceId)).Get();
+        var resource = client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ServerContainerGroupResourceId)).Get();
         return new AzmcServerService(resource);
     });
 

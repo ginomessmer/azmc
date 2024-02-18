@@ -63,7 +63,7 @@ resource discordBotContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
           image: botDockerImage
           env: [
             {
-              name: 'Azure__ContainerGroupResourceId'
+              name: 'Azure__ServerContainerGroupResourceId'
               value: minecraftServerContainerGroup.id
             }
             {
