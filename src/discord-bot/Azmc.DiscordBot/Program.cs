@@ -32,23 +32,23 @@ builder.Services
 // Server (Container instance)
 builder.Services
     .AddSingleton<ArmClient>(_ => new(new DefaultAzureCredential()))
-    .AddSingleton<AzmcServerResource>(services =>
+    .AddSingleton<AzmcServerService>(services =>
     {
         var client = services.GetRequiredService<ArmClient>();
         var options = services.GetRequiredService<IOptions<AzureOptions>>();
         var resource = client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ContainerGroupResourceId)).Get();
-        return new AzmcServerResource(resource);
+        return new AzmcServerService(resource);
     });
 
 
 // Renderer (Container app job)
 builder.Services
-    .AddSingleton<AzmcRendererResource>(services =>
+    .AddSingleton<AzmcRendererService>(services =>
     {
         var client = services.GetRequiredService<ArmClient>();
         var options = services.GetRequiredService<IOptions<AzureOptions>>();
         var resource = client.GetContainerAppJobResource(ResourceIdentifier.Parse(options.Value.RendererContainerAppJobResourceId)).Get();
-        return new AzmcRendererResource(resource);
+        return new AzmcRendererService(resource);
     });
 
 // Configuration

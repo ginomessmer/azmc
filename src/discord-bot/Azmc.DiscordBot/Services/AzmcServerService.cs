@@ -2,7 +2,7 @@
 
 namespace Azmc.DiscordBot.Resources;
 
-public class AzmcServerResource(ContainerGroupResource containerGroupResource)
+public class AzmcServerService(ContainerGroupResource containerGroupResource)
 {
     public ContainerGroupResource AzureResource => containerGroupResource;
 }

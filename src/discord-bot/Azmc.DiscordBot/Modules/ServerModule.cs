@@ -5,7 +5,7 @@ using Discord.Rest;
 
 namespace Azmc.DiscordBot.Modules;
 
-public class ServerModule(AzmcServerResource server) : RestInteractionModuleBase<RestInteractionContext>
+public class ServerModule(AzmcServerService server) : RestInteractionModuleBase<RestInteractionContext>
 {
     [SlashCommand("status", "Gets the status of the Minecraft server")]
     public Task StatusAsync()

@@ -2,7 +2,7 @@
 
 namespace Azmc.DiscordBot.Resources;
 
-public class AzmcRendererResource(ContainerAppJobResource containerAppJobResource)
+public class AzmcRendererService(ContainerAppJobResource containerAppJobResource)
 {
     /// <summary>
     /// Starts the container app job and renders the map.

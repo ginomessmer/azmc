@@ -6,7 +6,7 @@ using Discord.Rest;
 namespace Azmc.DiscordBot.Modules;
 
 [Group("map", "Manage the web map")]
-public class RendererModule(AzmcRendererResource renderer) : RestInteractionModuleBase<RestInteractionContext>
+public class RendererModule(AzmcRendererService renderer) : RestInteractionModuleBase<RestInteractionContext>
 {
     [SlashCommand("update", "Updates the web map")]
     public async Task UpdateAsync()
