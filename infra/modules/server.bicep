@@ -6,8 +6,12 @@ param serverShareName string = 'server'
 param serverStorageAccountName string
 
 // Minecraft settings
+// Most settings can be found at https://docker-minecraft-server.readthedocs.io/
 @description('The Minecraft version of the server.')
 param minecraftVersion string = 'LATEST'
+
+@description('The type of the server.')
+param serverType string = 'SPIGOT'
 
 @description('Recommended size: min. 3 GB RAM')
 param memorySize int = 3
@@ -28,7 +32,6 @@ param resourcePackUrl string
 param workspaceName string
 
 var serverMountPath = '/data'
-var serverType = 'SPIGOT'
 
 var containerGroupName = 'ci-${projectName}-server'
 
