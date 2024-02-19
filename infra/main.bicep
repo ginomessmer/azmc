@@ -138,6 +138,7 @@ module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBo
     discordBotPublicKey: discordBotPublicKey
     discordBotToken: discordBotToken
 
+    logAnalyticsWorkspaceId: logs.outputs.workspaceId
     containerLaunchManagerRoleId: roles.outputs.roleDefinitionContainerLaunchManagerId
   }
 }
