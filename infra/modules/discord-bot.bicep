@@ -99,7 +99,20 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource roleDefinitionMonitoringMetricsPublisher 'Microsoft.Authorization/roleDefinitions@2022-05-01-preview' existing = {
+  name: const.roles.monitoringMetricsPublisher
+}
+
+resource roleAssignmentMonitoringMetricsPublisher 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(discordBotContainerApp.id, const.roles.monitoringMetricsPublisher)
+  scope: minecraftServerContainerGroup
+  properties: {
+    principalId: discordBotContainerApp.identity.principalId
+    roleDefinitionId: roleDefinitionMonitoringMetricsPublisher.id
+  }
+}
+
+resource roleAssignmentContainerLaunchManager 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(discordBotContainerApp.id, containerLaunchManagerRoleId)
   scope: minecraftServerContainerGroup
   properties: {
