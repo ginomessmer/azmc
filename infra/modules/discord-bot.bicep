@@ -105,7 +105,7 @@ resource roleDefinitionMonitoringMetricsPublisher 'Microsoft.Authorization/roleD
 
 resource roleAssignmentMonitoringMetricsPublisher 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(discordBotContainerApp.id, const.roles.monitoringMetricsPublisher)
-  scope: minecraftServerContainerGroup
+  scope: applicationInsights
   properties: {
     principalId: discordBotContainerApp.identity.principalId
     roleDefinitionId: roleDefinitionMonitoringMetricsPublisher.id
