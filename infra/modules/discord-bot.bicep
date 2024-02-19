@@ -18,12 +18,16 @@ param discordBotPublicKey string
 @secure()
 param discordBotToken string
 
+@description('The ID of the Log Analytics workspace. This is used to send Application Insight logs of the Discord bot to the workspace.')
+param logAnalyticsWorkspaceId string
+
 @description('The role ID of the role that is allowed to launch the container app. This is used to allow the bot to launch the container app.')
 param containerLaunchManagerRoleId string
 
 var const = loadJsonContent('../const.json')
 
 var containerAppName = '${const.abbr.containerApp}-${projectName}-discord-bot'
+var appInsightsName = '${const.abbr.appInsights}-${containerAppName}'
 
 
 resource minecraftServerContainerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01' existing = {
@@ -82,6 +86,16 @@ resource discordBotContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
         }
       ]
     }
+  }
+}
+
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: appInsightsName
+  location: location
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: logAnalyticsWorkspaceId
   }
 }
 
