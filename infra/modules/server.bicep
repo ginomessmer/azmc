@@ -78,6 +78,10 @@ var minecraftContainer = {
         name: 'APPLICATIONINSIGHTS_ROLE_NAME'
         value: 'Minecraft Server'
       }
+      {
+        name: 'JVM_OPTS'
+        value: '-javaagent:/data/applicationinsights-agent-3.4.19.jar'
+      }
     ]
     volumeMounts: [
       {
