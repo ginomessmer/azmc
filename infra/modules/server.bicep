@@ -70,6 +70,14 @@ var minecraftContainer = {
         name: 'RESOURCE_PACK'
         value: resourcePackUrl != '' ? resourcePackUrl : ''
       }
+      {
+        name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+        value: applicationInsights.properties.ConnectionString
+      }
+      {
+        name: 'APPLICATIONINSIGHTS_ROLE_NAME'
+        value: 'Minecraft Server'
+      }
     ]
     volumeMounts: [
       {
@@ -133,6 +141,16 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
         }
       ]
     }
+  }
+}
+
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'ai-${containerGroupName}'
+  location: location
+  kind: 'java'
+  properties: {
+    Application_Type: 'other'
+    WorkspaceResourceId: workspace.id
   }
 }
 
