@@ -27,7 +27,15 @@ param minecraftConfig {
   deployResources: bool
   @description('The file name of the resource pack to deploy. Make sure to upload the resource pack to the storage account using the same name. Only required if deployResources is true.')
   resourcePackName: string
-
+} = {
+  acceptEula: false
+  deployRenderer: false
+  deployResources: true
+  mapHostName: ''
+  resourcePackName: ''
+  serverMemorySize: 3
+  serverType: 'PAPER'
+  useCdn: true
 }
 
 @description('Determines if the resource pack is hosted externally. If true, the resource pack will be linked to the Minecraft server. If false, AZMC assumes that the resource pack is hosted on the deployed resources storage account.')
