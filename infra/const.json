@@ -21,5 +21,8 @@
         "dashboard": "dbrd",
         "logicApp": "logic",
         "managedIdentity": "id"
+    },
+    "images": {
+        "cs2": "timche/csgo"
     }
 }

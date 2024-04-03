@@ -37,9 +37,9 @@ module gameServer 'modules/server.bicep' = {
   name: 'gameServer'
   params: {
     location: location
-    containers: [ minecraftContainer ]
-    gamePort: 25565
     projectName: projectName
+    gamePort: 25565
+    containers: [ minecraftContainer ]
     volumes: [ minecraftContainerVolume ]
     workspaceName: workspaceName
   }

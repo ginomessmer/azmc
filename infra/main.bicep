@@ -38,6 +38,16 @@ param minecraftConfig {
   useCdn: true
 }
 
+param cs2Config {
+  @description('The GSLT token for the Counter-Strike 2.0 server.')
+  gslt: string
+  @description('The Steam Web API key for the Counter-Strike 2.0 server.')
+  steamWebApiKey: string
+} = {
+  gslt: ''
+  steamWebApiKey: ''
+}
+
 @description('Determines if the resource pack is hosted externally. If true, the resource pack will be linked to the Minecraft server. If false, AZMC assumes that the resource pack is hosted on the deployed resources storage account.')
 var isResourcePackExternal = startsWith(minecraftConfig.resourcePackName, 'https://')
 
@@ -68,7 +78,7 @@ module storageServer 'modules/storage-server.bicep' = {
   }
 }
 
-module server 'minecraft.bicep' = if (game == 'minecraft') {
+module minecraftServer 'minecraft.bicep' = if (game == 'minecraft') {
   name: 'server'
   dependsOn: [
     storageServer
@@ -87,6 +97,23 @@ module server 'minecraft.bicep' = if (game == 'minecraft') {
       ? isResourcePackExternal
         ? minecraftConfig.resourcePackName : '${resources.outputs.storageAccountResourcePackEndpoint}/${minecraftConfig.resourcePackName}'
       : ''
+  }
+}
+
+ module cs2Server 'cs2.bicep' = if (game == 'cs2') {
+  name: 'cs2Server'
+  dependsOn: [
+    storageServer
+    logs
+  ]
+  params: {
+    location: location
+    name: name
+    gslt: cs2Config.gslt
+    steamWebApiKey: cs2Config.steamWebApiKey
+    serverShareName: storageServer.outputs.storageAccountFileShareServerName
+    serverStorageAccountName: storageServer.outputs.storageAccountServerName
+    workspaceName: logs.outputs.workspaceName
   }
 }
 
@@ -122,7 +149,7 @@ module storageRenderer 'modules/storage-map.bicep' = if(minecraftConfig.deployRe
 module renderer 'modules/renderer.bicep' = if(minecraftConfig.deployRenderer) {
   dependsOn: [
     storageRenderer
-    server
+    minecraftServer
     logs
   ]
   name: 'rendering'
@@ -139,7 +166,7 @@ module renderer 'modules/renderer.bicep' = if(minecraftConfig.deployRenderer) {
 // Discord bot
 module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBotPublicKey != '' && discordBotToken != '') {
   dependsOn: [
-    server
+    containerEnvironment
     logs
   ]
   name: 'discordBot'
@@ -148,7 +175,7 @@ module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBo
     projectName: name
 
     containerEnvironmentId: containerEnvironment.outputs.containerEnvironmentId
-    minecraftContainerGroupName: server.outputs.containerGroupName
+    minecraftContainerGroupName: minecraftServer.outputs.containerGroupName
     discordBotPublicKey: discordBotPublicKey
     discordBotToken: discordBotToken
 
@@ -163,7 +190,7 @@ module autoShutdown 'modules/auto-shutdown.bicep' = if (deployAutoShutdown) {
     location: location
     projectName: name
     
-    containerGroupName: server.outputs.containerGroupName
+    containerGroupName: minecraftServer.outputs.containerGroupName
     roleDefinitionId: roles.outputs.roleDefinitionContainerLaunchManagerId
   }
 }
@@ -190,13 +217,13 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
     projectName: name
     
     discordBotContainerAppId: deployDiscordBot ? discordBot.outputs.containerAppId : ''
-    minecraftServerContainerInstanceName: server.outputs.containerGroupName
+    minecraftServerContainerInstanceName: minecraftServer.outputs.containerGroupName
     serverStorageAccountId: storageServer.outputs.storageAccountId
   }
 }
 
-output minecraftServerContainerGroupName string = server.outputs.containerGroupName
-output minecraftServerFqdn string = server.outputs.containerGroupFqdn
+output minecraftServerContainerGroupName string = minecraftServer.outputs.containerGroupName
+output minecraftServerFqdn string = minecraftServer.outputs.containerGroupFqdn
 output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl) : null
 
 output webMapFqdn string = minecraftConfig.deployRenderer ? renderer.outputs.webMapFqdn : ''
