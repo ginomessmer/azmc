@@ -111,3 +111,6 @@ var minecraftContainerVolume = {
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
   name: serverStorageAccountName
 }
+
+output containerGroupName string = gameServer.outputs.containerGroupName
+output containerGroupFqdn string = gameServer.outputs.containerGroupFqdn

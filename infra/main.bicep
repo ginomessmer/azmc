@@ -1,26 +1,41 @@
 param location string = resourceGroup().location
 param name string = 'azmc'
 
-// Server
-@description('Accept the Minecraft Server EULA.')
-@allowed([true])
-param acceptEula bool
-@description('The memory size of the server in GB. Increase for large servers or maps.')
-param serverMemorySize int = 3
-@description('The type of server to deploy. Check the documentation for the list of supported server types: https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/. Commonly used types are SPIGOT, PAPER, and FORGE.')
-param serverType string = 'PAPER'
+@description('The game to deploy. Supported games are Minecraft and Counter-Strike 2.0.')
+param game 'minecraft' | 'cs2'
+
+// Game config
+param minecraftConfig {
+  // Server
+  @description('Accept the Minecraft Server EULA.')
+  acceptEula: bool
+  @description('The memory size of the server in GB. Increase for large servers or maps.')
+  serverMemorySize: int
+  @description('The type of server to deploy. Check the documentation for the list of supported server types: https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/. Commonly used types are SPIGOT, PAPER, and FORGE.')
+  serverType: string
+
+  // Web map
+  @description('Deploy the map renderer module.')
+  deployRenderer: bool
+  @description('Use the CDN to serve the rendered map. If false, the rendered map will be served from the Container App.')
+  useCdn: bool
+  @description('The host name for the web map.')
+  mapHostName: string
+
+  // Resources
+  @description('Deploy the services required to host resources, such as resource packs.')
+  deployResources: bool
+  @description('The file name of the resource pack to deploy. Make sure to upload the resource pack to the storage account using the same name. Only required if deployResources is true.')
+  resourcePackName: string
+
+}
+
+@description('Determines if the resource pack is hosted externally. If true, the resource pack will be linked to the Minecraft server. If false, AZMC assumes that the resource pack is hosted on the deployed resources storage account.')
+var isResourcePackExternal = startsWith(minecraftConfig.resourcePackName, 'https://')
 
 // Dashboard
 @description('Deploy the built-in Azure Portal dashboards.')
 param deployDashboard bool = true
-
-// Web map
-@description('Deploy the map renderer module.')
-param deployRenderer bool = false
-@description('Use the CDN to serve the rendered map. If false, the rendered map will be served from the Container App.')
-param useCdn bool = true
-@description('The host name for the web map.')
-param mapHostName string = ''
 
 // Discord bot
 @description('Deploy the Discord bot module. Make sure to supply the public key and token.')
@@ -31,15 +46,6 @@ param discordBotPublicKey string = ''
 @description('The token for the Discord bot. Only required if deployDiscordBot is true.')
 @secure()
 param discordBotToken string = ''
-
-// Resources
-@description('Deploy the services required to host resources, such as resource packs.')
-param deployResources bool = true
-@description('The file name of the resource pack to deploy. Make sure to upload the resource pack to the storage account using the same name. Only required if deployResources is true.')
-param resourcePackName string = ''
-
-@description('Determines if the resource pack is hosted externally. If true, the resource pack will be linked to the Minecraft server. If false, AZMC assumes that the resource pack is hosted on the deployed resources storage account.')
-var isResourcePackExternal = startsWith(resourcePackName, 'https://')
 
 // Auto shutdown
 @description('Automatically shut down the server at midnight.')
@@ -54,7 +60,7 @@ module storageServer 'modules/storage-server.bicep' = {
   }
 }
 
-module server 'modules/server.bicep' = {
+module server 'minecraft.bicep' = if (game == 'minecraft') {
   name: 'server'
   dependsOn: [
     storageServer
@@ -62,16 +68,16 @@ module server 'modules/server.bicep' = {
   ]
   params: {
     location: location
-    acceptEula: acceptEula
-    serverType: serverType
+    acceptEula: minecraftConfig.acceptEula
+    serverType: minecraftConfig.serverType
     projectName: name
     serverStorageAccountName: storageServer.outputs.storageAccountServerName
     serverShareName: storageServer.outputs.storageAccountFileShareServerName
     workspaceName: logs.outputs.workspaceName
-    memorySize: serverMemorySize
-    resourcePackUrl: (deployResources && resourcePackName != '') || isResourcePackExternal
+    memorySize: minecraftConfig.serverMemorySize
+    resourcePackUrl: (minecraftConfig.deployResources && minecraftConfig.resourcePackName != '') || isResourcePackExternal
       ? isResourcePackExternal
-        ? resourcePackName : '${resources.outputs.storageAccountResourcePackEndpoint}/${resourcePackName}'
+        ? minecraftConfig.resourcePackName : '${resources.outputs.storageAccountResourcePackEndpoint}/${minecraftConfig.resourcePackName}'
       : ''
   }
 }
@@ -97,7 +103,7 @@ module logs 'modules/logs.bicep' = {
 }
 
 // Renderer
-module storageRenderer 'modules/storage-map.bicep' = if(deployRenderer) {
+module storageRenderer 'modules/storage-map.bicep' = if(minecraftConfig.deployRenderer) {
   name: 'storageRenderer'
   params: {
     location: location
@@ -105,7 +111,7 @@ module storageRenderer 'modules/storage-map.bicep' = if(deployRenderer) {
   }
 }
 
-module renderer 'modules/renderer.bicep' = if(deployRenderer) {
+module renderer 'modules/renderer.bicep' = if(minecraftConfig.deployRenderer) {
   dependsOn: [
     storageRenderer
     server
@@ -117,8 +123,8 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
     projectName: name
     containerEnvironmentName: containerEnvironment.outputs.containerEnvironmentName
     mapRendererStorageAccountName: storageRenderer.outputs.storageAccountPublicMapName
-    useCdn: useCdn
-    webMapHostName: mapHostName
+    useCdn: minecraftConfig.useCdn
+    webMapHostName: minecraftConfig.mapHostName
   }
 }
 
@@ -155,7 +161,7 @@ module autoShutdown 'modules/auto-shutdown.bicep' = if (deployAutoShutdown) {
 }
 
 // Resources
-module resources 'modules/storage-resources.bicep' = if(deployResources) {
+module resources 'modules/storage-resources.bicep' = if(minecraftConfig.deployResources) {
   name: 'resources'
   params: {
     location: location
@@ -185,4 +191,4 @@ output minecraftServerContainerGroupName string = server.outputs.containerGroupN
 output minecraftServerFqdn string = server.outputs.containerGroupFqdn
 output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl) : null
 
-output webMapFqdn string = deployRenderer ? renderer.outputs.webMapFqdn : ''
+output webMapFqdn string = minecraftConfig.deployRenderer ? renderer.outputs.webMapFqdn : ''
