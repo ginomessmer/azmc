@@ -184,7 +184,7 @@ module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBo
 }
 
 // Auto shutdown
-module autoShutdown 'modules/auto-shutdown.bicep' = if (deployAutoShutdown) {
+module autoShutdown 'modules/auto-shutdown.bicep' = if (game == 'minecraft' && deployAutoShutdown) { // only for Minecraft for now
   name: 'autoShutdown'
   params: {
     location: location
