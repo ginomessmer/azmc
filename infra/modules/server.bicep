@@ -136,6 +136,10 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
           protocol: 'TCP'
           port: 25565
         }
+        {
+          protocol: 'UDP'
+          port: 19132
+        }
       ]
     }
   }
