@@ -44,10 +44,12 @@ var minecraftContainer = {
       {
         // Minecraft
         port: 25565
+        protocol: 'TCP'
       }
       {
         // Geyser
         port: 19132
+        protocol: 'UDP'
       }
     ]
     environmentVariables: [
