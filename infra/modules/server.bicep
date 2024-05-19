@@ -42,7 +42,12 @@ var minecraftContainer = {
     image: 'itzg/minecraft-server'
     ports: [
       {
+        // Minecraft
         port: 25565
+      }
+      {
+        // Geyser
+        port: 19132
       }
     ]
     environmentVariables: [
