@@ -82,9 +82,7 @@ var minecraftContainer = {
       }
       isBedrockSupportEnabled ? {
         name: 'PLUGINS'
-        value: [
-          'https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot'
-        ]
+        value: 'https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot'
       } : { }
     ]
     volumeMounts: [
