@@ -22,6 +22,9 @@ param cpuCores int = 2
 @description('Enable autostop of the server when no players are online.')
 param isAutostopEnabled string = 'TRUE'
 
+@description('Enable server support for Bedrock Edition players using Geyser. Does not contain Floodgate. For more information, see https://geysermc.org/.')
+param isBedrockSupportEnabled bool = true
+
 @description('Accept the Minecraft EULA.')
 param acceptEula bool
 
@@ -46,11 +49,11 @@ var minecraftContainer = {
         port: 25565
         protocol: 'TCP'
       }
-      {
+      isBedrockSupportEnabled ? {
         // Geyser
         port: 19132
         protocol: 'UDP'
-      }
+      } : { }
     ]
     environmentVariables: [
       {
@@ -77,6 +80,12 @@ var minecraftContainer = {
         name: 'RESOURCE_PACK'
         value: resourcePackUrl != '' ? resourcePackUrl : ''
       }
+      isBedrockSupportEnabled ? {
+        name: 'PLUGINS'
+        value: [
+          'https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot'
+        ]
+      } : { }
     ]
     volumeMounts: [
       {
@@ -138,10 +147,10 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
           protocol: 'TCP'
           port: 25565
         }
-        {
+        isBedrockSupportEnabled ? {
           protocol: 'UDP'
           port: 19132
-        }
+        } : { }
       ]
     }
   }
