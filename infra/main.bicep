@@ -9,6 +9,8 @@ param acceptEula bool
 param serverMemorySize int = 3
 @description('The type of server to deploy. Check the documentation for the list of supported server types: https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/. Commonly used types are SPIGOT, PAPER, and FORGE.')
 param serverType string = 'PAPER'
+@description('Enable Bedrock support for the server. This will allow Bedrock clients to connect to the server.')
+param isBedrockSupportEnabled bool = false
 
 // Dashboard
 @description('Deploy the built-in Azure Portal dashboards.')
@@ -69,6 +71,7 @@ module server 'modules/server.bicep' = {
     serverShareName: storageServer.outputs.storageAccountFileShareServerName
     workspaceName: logs.outputs.workspaceName
     memorySize: serverMemorySize
+    isBedrockSupportEnabled: isBedrockSupportEnabled
     resourcePackUrl: (deployResources && resourcePackName != '') || isResourcePackExternal
       ? isResourcePackExternal
         ? resourcePackName : '${resources.outputs.storageAccountResourcePackEndpoint}/${resourcePackName}'
