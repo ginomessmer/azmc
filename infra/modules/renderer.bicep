@@ -9,6 +9,15 @@ param useCdn bool = true
 
 param webMapHostName string = ''
 
+@description('The schedule for the renderer job. The renderer job will be triggered according to this schedule.')
+@allowed([
+  'weekly'
+  'daily'
+  'hourly'
+  'every5Minutes'
+])
+param schedule string = 'weekly'
+
 var rendererContainerJobName = '${const.abbr.containerJob}-${projectName}-renderer'
 var renderingContainerImage = 'ghcr.io/bluemap-minecraft/bluemap:latest'
 
@@ -16,6 +25,15 @@ var webMapContainerAppName = '${const.abbr.containerApp}-${projectName}-map-web'
 var cdnName = '${const.abbr.cdn}-${projectName}-map-web'
 
 var const = loadJsonContent('../const.json')
+
+var cronSchedules = {
+  weekly: '0 0 * * 0'
+  daily: '0 0 * * *'
+  hourly: '0 * * * *'
+  every5Minutes: '*/5 * * * *'
+}
+
+var cronExpression = cronSchedules[schedule]
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
   name: mapRendererStorageAccountName
@@ -65,7 +83,7 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
       triggerType: 'schedule'
       replicaRetryLimit: 0
       scheduleTriggerConfig: {
-        cronExpression: '0 0 * * 0'
+        cronExpression: cronExpression
       }
     }
     template: {
