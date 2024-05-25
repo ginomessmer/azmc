@@ -19,6 +19,14 @@ param deployDashboard bool = true
 // Web map
 @description('Deploy the map renderer module.')
 param deployRenderer bool = false
+@description('The schedule for rendering the map. The map will be rendered at the specified interval. The supported values are weekly, daily, hourly, and every5Minutes.')
+@allowed([
+  'weekly'
+  'daily'
+  'hourly'
+  'every5Minutes'
+])
+param rendererSchedule string = 'weekly'
 @description('Use the CDN to serve the rendered map. If false, the rendered map will be served from the Container App.')
 param useCdn bool = true
 @description('The host name for the web map.')
@@ -118,6 +126,7 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
   params: {
     location: location
     projectName: name
+    schedule: rendererSchedule
     containerEnvironmentName: containerEnvironment.outputs.containerEnvironmentName
     mapRendererStorageAccountName: storageRenderer.outputs.storageAccountPublicMapName
     useCdn: useCdn
