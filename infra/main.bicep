@@ -58,10 +58,10 @@ param deployAutoShutdown bool = true
 
 // Docker Hub settings
 @description('The Docker Hub username.')
-param dockerHubUsername string
+param dockerHubUsername string = ''
 @description('The Docker Hub password.')
 @secure()
-param dockerHubPassword string
+param dockerHubPassword string = ''
 
 // Server
 module storageServer 'modules/storage-server.bicep' = {
