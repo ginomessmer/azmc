@@ -55,6 +55,14 @@ var isResourcePackExternal = startsWith(resourcePackName, 'https://')
 @description('Automatically shut down the server at midnight.')
 param deployAutoShutdown bool = true
 
+
+// Docker Hub settings
+@description('The Docker Hub username.')
+param dockerHubUsername string
+@description('The Docker Hub password.')
+@secure()
+param dockerHubPassword string
+
 // Server
 module storageServer 'modules/storage-server.bicep' = {
   name: 'storageServer'
@@ -84,6 +92,8 @@ module server 'modules/server.bicep' = {
       ? isResourcePackExternal
         ? resourcePackName : '${resources.outputs.storageAccountResourcePackEndpoint}/${resourcePackName}'
       : ''
+    dockerHubUsername: dockerHubUsername
+    dockerHubPassword: dockerHubPassword
   }
 }
 

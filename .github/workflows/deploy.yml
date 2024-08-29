@@ -28,6 +28,8 @@ env:
     -g ${{ secrets.AZURE_RG_NAME }} \
     -p discordBotPublicKey="${{ secrets.DISCORD_BOT_PUBLIC_KEY }}" \
     -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" \
+    -p dockerHubUsername"${{ secrets.DOCKER_HUB_USER }}" \
+    -p dockerHubPassword"${{ secrets.DOCKER_HUB_PAT }}" \
     ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} \
     ${{ github.event.inputs.additional_params }} > whatif
   DEPLOYMENT_NAME: ${{ github.run_id }}

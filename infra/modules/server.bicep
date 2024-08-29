@@ -31,6 +31,14 @@ param acceptEula bool
 @description('The URL of the Minecraft resource pack.')
 param resourcePackUrl string
 
+// Docker Hub settings
+@description('The Docker Hub username.')
+param dockerHubUsername string
+
+@description('The Docker Hub password.')
+@secure()
+param dockerHubPassword string
+
 // Log Analytics settings
 param workspaceName string
 
@@ -123,6 +131,13 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
   name: containerGroupName
   location: location
   properties: {
+    imageRegistryCredentials: [
+      {
+        server: 'docker.io'
+        username: dockerHubUsername
+        password: dockerHubPassword
+      }
+    ]
     osType: 'Linux'
     containers: [
       minecraftContainer
