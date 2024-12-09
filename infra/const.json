@@ -5,9 +5,11 @@
     "containerEnvMinecraftServerStorageName": "minecraft-server",
     "containerEnvMapWebStorageName": "map-web",
     "containerEnvBlueMapStorageName": "bluemap",
+    "containerEnvCaddyStorageName": "caddy",
     "renderer": {
         "webShareName": "web",
-        "blueMapShareName": "bluemap"
+        "blueMapShareName": "bluemap",
+        "caddyShareName": "caddy"
     },
     "abbr": {
         "containerApp": "ca",

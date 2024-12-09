@@ -39,8 +39,17 @@ resource storageAccountPublicMap 'Microsoft.Storage/storageAccounts@2023-01-01' 
         shareQuota: 32
       }
     }
+
+    resource caddyConfigShare 'shares' = {
+      name: const.renderer.caddyShareName
+      properties: {
+        shareQuota: 1
+      }
+    }
   }
 }
 
 output storageAccountPublicMapResourceId string = storageAccountPublicMap.id
 output storageAccountPublicMapName string = storageAccountPublicMap.name
+
+output caddyShareName string = storageAccountPublicMap::fileServices::caddyConfigShare.name

@@ -24,6 +24,8 @@ var renderingContainerImage = 'ghcr.io/bluemap-minecraft/bluemap:latest'
 var webMapContainerAppName = '${const.abbr.containerApp}-${projectName}-map-web'
 var cdnName = '${const.abbr.cdn}-${projectName}-map-web'
 
+var webImageName = 'caddy:2.8'
+
 var const = loadJsonContent('../const.json')
 
 var cronSchedules = {
@@ -62,6 +64,19 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-prev
       azureFile: {
         accessMode: 'ReadWrite'
         shareName: const.renderer.blueMapShareName
+        accountName: storageAccount.name
+        accountKey: storageAccount.listKeys().keys[0].value
+      }
+    }
+  }
+
+  // Caddy config
+  resource caddyStorage 'storages' = {
+    name: const.containerEnvCaddyStorageName
+    properties: {
+      azureFile: {
+        accessMode: 'ReadWrite'
+        shareName: const.renderer.caddyShareName
         accountName: storageAccount.name
         accountKey: storageAccount.listKeys().keys[0].value
       }
@@ -167,11 +182,21 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
       containers: [
         {
           name: 'web'
-          image: 'caddy'
+          image: webImageName
           volumeMounts: [
             {
               mountPath: '/srv'
               volumeName: const.containerEnvMapWebStorageName
+            }
+            {
+              mountPath: '/etc/caddy'
+              volumeName: const.containerEnvCaddyStorageName
+              subPath: 'config'
+            }
+            {
+              mountPath: '/data'
+              volumeName: const.containerEnvCaddyStorageName
+              subPath: 'data'
             }
           ]
           resources:{
