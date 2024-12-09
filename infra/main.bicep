@@ -139,7 +139,7 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
     schedule: rendererSchedule
     containerEnvironmentName: containerEnvironment.outputs.containerEnvironmentName
     mapRendererStorageAccountName: storageRenderer.outputs.storageAccountPublicMapName
-    useCdn: useCdn
+    deploymentMode: 'cdn'
     webMapHostName: mapHostName
   }
 }
