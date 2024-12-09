@@ -4,8 +4,8 @@ param projectName string
 param containerEnvironmentName string
 param mapRendererStorageAccountName string = ''
 
-@description('Whether to use CDN for the web map. This can improve performance, enables caching and supports compression, but may incur additional costs.')
-param useCdn bool = true
+@description('The deployment mode of the web map. This can be either "storage" (default), "cdn" or "container". Read the documentation for more information.')
+param deploymentMode 'cdn' | 'container' = 'cdn'
 
 param webMapHostName string = ''
 
@@ -167,10 +167,10 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
       containers: [
         {
           name: 'web'
-          image: 'nginx'
+          image: 'caddy'
           volumeMounts: [
             {
-              mountPath: '/usr/share/nginx/html'
+              mountPath: '/srv'
               volumeName: const.containerEnvMapWebStorageName
             }
           ]
@@ -184,7 +184,7 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
   }
 }
 
-resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (useCdn) {
+resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (deploymentMode == 'cdn') {
   name: cdnName
   location: 'Global'
   sku: {
@@ -260,4 +260,4 @@ resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (useCdn) {
 output webMapContainerAppName string = webMapContainerApp.name
 output rendererContainerJobName string = rendererContainerJob.name
 
-output webMapFqdn string = useCdn ? cdn::endpoint.properties.hostName : webMapContainerApp.properties.latestRevisionFqdn
+output webMapFqdn string = deploymentMode == 'cdn' ? cdn::endpoint.properties.hostName : webMapContainerApp.properties.latestRevisionFqdn
