@@ -129,11 +129,11 @@ jobs:
         env:
           AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
           SHARE_NAME: caddy
+          PATH: config
         with:
           inlineScript: |
-            az storage directory create --share-name $SHARE_NAME --name /etc
-            az storage directory create --share-name $SHARE_NAME --name /etc/caddy
+            az storage directory create --share-name $SHARE_NAME --name $PATH
             az storage file upload \
               --share-name $SHARE_NAME \
               --source config/caddy/Caddyfile \
-              --path /etc/caddy
+              --path $PATH
