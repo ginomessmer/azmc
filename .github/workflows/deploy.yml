@@ -122,7 +122,7 @@ jobs:
       - name: Get Storage Account Name
         id: storage_account
         run: |
-          echo "::set-output name=storage_account::$(az deployment group show -n storageRenderer -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.storageAccountPublicMapName.value -o tsv)"
+          az deployment group show -n storageRenderer -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.storageAccountPublicMapName.value -o tsv >> $GITHUB_OUTPUT
 
       - name: Upload Caddyfile to Azure Storage
         uses: azure/cli@v1
