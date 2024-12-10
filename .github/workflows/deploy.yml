@@ -132,6 +132,7 @@ jobs:
           PATH: config
         with:
           inlineScript: |
+            sudo apt-get install curl
             az storage directory create --share-name $SHARE_NAME --name $PATH
             az storage file upload \
               --share-name $SHARE_NAME \
