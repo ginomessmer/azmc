@@ -123,15 +123,17 @@ jobs:
         id: storage_account
         run: |
           echo "NAME=$(az deployment group show -n storageRenderer -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.storageAccountPublicMapName.value -o tsv)" >> $GITHUB_OUTPUT
-          echo $GITHUB_OUTPUT
 
       - name: Upload Caddyfile to Azure Storage
         uses: azure/cli@v1
         env:
           AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
+          SHARE_NAME: caddy
         with:
           inlineScript: |
+            az storage directory create --share-name $SHARE_NAME --name /etc
+            az storage directory create --share-name $SHARE_NAME --name /etc/caddy
             az storage file upload \
-              --share-name caddy \
+              --share-name $SHARE_NAME \
               --source config/caddy/Caddyfile \
-              --path /etc/caddy/Caddyfile
+              --path /etc/caddy
