@@ -128,11 +128,10 @@ jobs:
       - name: Upload Caddyfile to Azure Storage
         uses: azure/cli@v1
         env:
-          STORAGE_ACCOUNT_NAME: ${{ steps.storage_account.outputs.NAME }}
+          AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
         with:
           inlineScript: |
             az storage file upload \
-              --account-name $STORAGE_ACCOUNT_NAME \
               --share-name caddy \
               --source config/caddy/Caddyfile \
               --path /etc/caddy/Caddyfile
