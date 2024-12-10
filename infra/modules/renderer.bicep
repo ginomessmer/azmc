@@ -121,12 +121,6 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
           storageType: 'AzureFile'
           name: const.containerEnvBlueMapStorageName
         }
-        {
-          // Caddy
-          storageName: const.containerEnvCaddyStorageName
-          storageType: 'AzureFile'
-          name: const.containerEnvCaddyStorageName
-        }
       ]
       containers: [
         {
@@ -183,6 +177,12 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
           storageName: const.containerEnvMapWebStorageName
           storageType: 'AzureFile'
           name: const.containerEnvMapWebStorageName
+        }
+        {
+          // Caddy
+          storageName: const.containerEnvCaddyStorageName
+          storageType: 'AzureFile'
+          name: const.containerEnvCaddyStorageName
         }
       ]
       containers: [
