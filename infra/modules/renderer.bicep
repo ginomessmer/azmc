@@ -37,7 +37,7 @@ var cronSchedules = {
 
 var cronExpression = cronSchedules[schedule]
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+resource rendererStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
   name: mapRendererStorageAccountName
 }
 
@@ -51,8 +51,8 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-prev
       azureFile: {
         accessMode: 'ReadWrite'
         shareName: const.renderer.webShareName
-        accountName: storageAccount.name
-        accountKey: storageAccount.listKeys().keys[0].value
+        accountName: rendererStorageAccount.name
+        accountKey: rendererStorageAccount.listKeys().keys[0].value
       }
     }
   }
@@ -64,8 +64,8 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-prev
       azureFile: {
         accessMode: 'ReadWrite'
         shareName: const.renderer.blueMapShareName
-        accountName: storageAccount.name
-        accountKey: storageAccount.listKeys().keys[0].value
+        accountName: rendererStorageAccount.name
+        accountKey: rendererStorageAccount.listKeys().keys[0].value
       }
     }
   }
@@ -77,8 +77,8 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-prev
       azureFile: {
         accessMode: 'ReadWrite'
         shareName: const.renderer.caddyShareName
-        accountName: storageAccount.name
-        accountKey: storageAccount.listKeys().keys[0].value
+        accountName: rendererStorageAccount.name
+        accountKey: rendererStorageAccount.listKeys().keys[0].value
       }
     }
   }
