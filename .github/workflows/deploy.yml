@@ -137,4 +137,4 @@ jobs:
             az storage file upload \
               --share-name $SHARE_NAME \
               --source config/caddy/Caddyfile \
-              --path $SHARE_PATH/Caddyfile
+              --path $SHARE_PATH
