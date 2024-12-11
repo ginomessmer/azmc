@@ -132,7 +132,7 @@ jobs:
           SHARE_PATH: config
         with:
           inlineScript: |
-            apk add curl --no-cache
+            apt-get update && apt-get install curl -y
             az storage directory create --share-name $SHARE_NAME --name $SHARE_PATH
             az storage file upload \
               --share-name $SHARE_NAME \
