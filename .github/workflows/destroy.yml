@@ -61,10 +61,20 @@ jobs:
         run: |
           echo "NAME=$(az deployment group show -n storageRenderer -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.storageAccountPublicMapName.value -o tsv)" >> $GITHUB_OUTPUT
 
+      - name: Generate SAS Token
+        id: sas_token
+        env:
+          AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
+        run: |
+          end=`date -u -d "30 minutes" '+%Y-%m-%dT%H:%MZ'`
+          sas_token=$(az storage account generate-sas --services f --resource-types o --permissions dly --expiry $end -o tsv)
+          echo "TOKEN=$sas_token" >> $GITHUB_OUTPUT
+
       - name: Delete Web Map Directory
         env:
           AZCOPY_AUTO_LOGIN_TYPE: AZCLI
           AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
+          SAS_TOKEN: ${{ steps.sas_token.outputs.TOKEN }}
           SHARE_NAME: web
           DIR_NAME: maps
-        run: azcopy remove "https://$AZURE_STORAGE_ACCOUNT.file.core.windows.net/$SHARE_NAME/$DIR_NAME" --recursive --log-level=INFO --trailing-dot=Enable
+        run: azcopy remove "https://$AZURE_STORAGE_ACCOUNT.file.core.windows.net/$SHARE_NAME/$DIR_NAME?$SAS_TOKEN" --recursive --log-level=INFO --trailing-dot=Enable
