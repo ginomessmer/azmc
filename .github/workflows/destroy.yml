@@ -77,4 +77,7 @@ jobs:
           SAS_TOKEN: ${{ steps.sas_token.outputs.TOKEN }}
           SHARE_NAME: web
           DIR_NAME: maps
-        run: azcopy remove "https://$AZURE_STORAGE_ACCOUNT.file.core.windows.net/$SHARE_NAME/$DIR_NAME?$SAS_TOKEN" --recursive --log-level=INFO --trailing-dot=Enable
+        run: |
+          uri="https://$AZURE_STORAGE_ACCOUNT.file.core.windows.net/$SHARE_NAME/$DIR_NAME?$SAS_TOKEN"
+          echo "Removing directory $uri"
+          azcopy remove $uri --recursive --log-level=INFO --trailing-dot=Enable
