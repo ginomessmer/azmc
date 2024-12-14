@@ -72,7 +72,6 @@ jobs:
 
       - name: Delete Web Map Directory
         env:
-          AZCOPY_AUTO_LOGIN_TYPE: AZCLI
           AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
           SAS_TOKEN: ${{ steps.sas_token.outputs.TOKEN }}
           SHARE_NAME: web
