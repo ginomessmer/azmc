@@ -68,7 +68,7 @@ jobs:
         run: |
           end=`date -u -d "30 minutes" '+%Y-%m-%dT%H:%MZ'`
           sas_token=$(az storage account generate-sas --services f --resource-types o --permissions dly --expiry $end -o tsv)
-          echo "TOKEN=$sas_token" >> $GITHUB_OUTPUT
+          echo "TOKEN=::add-mask::$sas_token" >> $GITHUB_OUTPUT
 
       - name: Delete Web Map Directory
         env:
