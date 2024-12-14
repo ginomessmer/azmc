@@ -67,7 +67,7 @@ jobs:
           AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
         run: |
           end=`date -u -d "30 minutes" '+%Y-%m-%dT%H:%MZ'`
-          sas_token=$(az storage account generate-sas --services f --resource-types o --permissions acdfilprtuwxy --expiry $end -o tsv)
+          sas_token=$(az storage account generate-sas --services f --resource-types o --permissions rwdl --expiry $end -o tsv)
           echo "::add-mask::$sas_token"
           echo "TOKEN=$sas_token" >> $GITHUB_OUTPUT
 
