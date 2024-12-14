@@ -67,16 +67,16 @@ jobs:
           AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
         run: |
           end=`date -u -d "30 minutes" '+%Y-%m-%dT%H:%MZ'`
-          sas_token=$(az storage account generate-sas --services f --resource-types o --permissions dly --expiry $end -o tsv)
+          sas_token=$(az storage account generate-sas --services f --resource-types o --permissions acdfilprtuwxy --expiry $end -o tsv)
           echo "::add-mask::$sas_token"
           echo "TOKEN=$sas_token" >> $GITHUB_OUTPUT
 
       - name: Delete Web Map Directory
         env:
           AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
-          SAS_TOKEN: ${{ steps.sas_token.outputs.TOKEN }}
           SHARE_NAME: web
           DIR_NAME: maps
+          SAS_TOKEN: ${{ steps.sas_token.outputs.TOKEN }}
         run: |
           uri="https://$AZURE_STORAGE_ACCOUNT.file.core.windows.net/$SHARE_NAME/$DIR_NAME?$SAS_TOKEN"
           echo "Removing directory $uri"
