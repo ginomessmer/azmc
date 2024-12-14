@@ -68,3 +68,10 @@ jobs:
           DIR_NAME: maps
         run: |
           az storage file delete-batch -s $SHARE_NAME --pattern "$DIR_NAME/*" 
+
+      - name: Delete Web Map Page
+        env:
+          AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
+          SHARE_NAME: web
+        run: |
+          az storage file delete -s $SHARE_NAME -p index.html
