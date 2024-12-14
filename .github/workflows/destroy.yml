@@ -67,7 +67,7 @@ jobs:
           SHARE_NAME: web
           DIR_NAME: maps
         run: |
-          az storage file delete-batch -s $SHARE_NAME --pattern "$DIR_NAME/*" 
+          az storage file delete-batch -s $SHARE_NAME --pattern "$DIR_NAME/*"  --verbose
 
       - name: Delete Web Map Page
         env:
