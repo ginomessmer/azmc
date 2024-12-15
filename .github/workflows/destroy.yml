@@ -72,5 +72,4 @@ jobs:
         env:
           AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
           SHARE_NAME: web
-        run: |
-          az storage remove -s $SHARE_NAME -p index.html
+        run: az storage remove -s $SHARE_NAME -p index.html
