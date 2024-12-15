@@ -15,16 +15,17 @@ on:
         default: server
         options:
           - server
+          - webmap
 
 permissions: 
   id-token: write
-
 
 jobs:
   destroy_server:
     runs-on: ubuntu-latest
     name: Destroy Server
     environment: ${{ github.event.inputs.environment }}
+    if: ${{ github.event.inputs.resource == 'server' }}
     steps:
       - name: Login to Azure
         uses: azure/login@v1
@@ -41,3 +42,34 @@ jobs:
 
       - name: Delete Container
         run: az container delete -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.get_server.outputs.container_name }} -y
+
+  destroy_webmap:
+    runs-on: ubuntu-latest
+    name: Destroy Web Map
+    environment: ${{ github.event.inputs.environment }}
+    if: ${{ github.event.inputs.resource == 'webmap' }}
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Storage Account Name
+        id: storage_account
+        run: |
+          echo "NAME=$(az deployment group show -n storageRenderer -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.storageAccountPublicMapName.value -o tsv)" >> $GITHUB_OUTPUT
+
+      - name: Delete Web Map Directory
+        env:
+          AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
+          SHARE_NAME: web
+          DIR_NAME: maps
+        run: az storage remove -s $SHARE_NAME -p $DIR_NAME --recursive
+
+      - name: Delete Web Map Page
+        env:
+          AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
+          SHARE_NAME: web
+        run: az storage remove -s $SHARE_NAME -p index.html

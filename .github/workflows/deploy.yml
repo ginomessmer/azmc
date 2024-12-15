@@ -57,7 +57,6 @@ jobs:
             az deployment group what-if \
               ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
 
-      # Create string output of Whatif
       - name: Create Job Summary
         id: whatif-string
         run: |
@@ -73,7 +72,6 @@ jobs:
           echo "</details>" >> $GITHUB_OUTPUT
           echo "${delimiter}" >> $GITHUB_OUTPUT
 
-      # Publish Terraform Plan as task summary
       - name: Publish Job Summary
         env:
           SUMMARY: ${{ steps.whatif-string.outputs.summary }}
@@ -102,3 +100,39 @@ jobs:
           inlineScript: |
             az deployment group create -n ${{ env.DEPLOYMENT_NAME }} \
               ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
+
+  configure_map:
+    runs-on: ubuntu-latest
+    name: Configure Web Map
+    needs: deploy
+    environment: ${{ github.event.inputs.environment }}
+    if: ${{ github.event.inputs.whatif_only == 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Storage Account Name
+        id: storage_account
+        run: |
+          echo "NAME=$(az deployment group show -n storageRenderer -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.storageAccountPublicMapName.value -o tsv)" >> $GITHUB_OUTPUT
+
+      - name: Upload Caddyfile to Azure Storage
+        uses: azure/cli@v1
+        env:
+          AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
+          SHARE_NAME: caddy
+          SHARE_PATH: config
+        with:
+          inlineScript: |
+            apt-get update && apt-get install curl -y
+            az storage directory create --share-name $SHARE_NAME --name $SHARE_PATH
+            az storage file upload \
+              --share-name $SHARE_NAME \
+              --source config/caddy/Caddyfile \
+              --path $SHARE_PATH

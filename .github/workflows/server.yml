@@ -1,0 +1,65 @@
+name: Manage Server
+
+on:
+  workflow_dispatch:
+      environment:
+        description: 'Name of the environment'
+        required: true
+        default: development
+        type: environment
+      action:
+        description: 'Action'
+        required: true
+        type: choice
+        default: start
+        options:
+          - start
+          - stop
+
+permissions: 
+  id-token: write
+
+jobs:
+  start_server:
+    runs-on: ubuntu-latest
+    name: Start Server
+    environment: ${{ github.event.inputs.environment }}
+    if: ${{ github.event.inputs.action == 'start' }}
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Container
+        id: get_server
+        run: |
+          container_name=$(az deployment group show -g ${{ secrets.AZURE_RG_NAME }} -n server -o tsv --query properties.outputs.containerGroupName.value)
+          echo "container_name::$container_name" >> $GITHUB_OUTPUT
+
+      - name: Start Container
+        run: az container start -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.get_server.outputs.container_name }}
+
+  stop_server:
+    runs-on: ubuntu-latest
+    name: Stop Server
+    environment: ${{ github.event.inputs.environment }}
+    if: ${{ github.event.inputs.action == 'stop' }}
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Container
+        id: get_server
+        run: |
+          container_name=$(az deployment group show -g ${{ secrets.AZURE_RG_NAME }} -n server -o tsv --query properties.outputs.containerGroupName.value)
+          echo "container_name::$container_name" >> $GITHUB_OUTPUT
+
+      - name: Stop Container
+        run: az container stop -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.get_server.outputs.container_name }}

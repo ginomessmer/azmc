@@ -4,8 +4,8 @@ param projectName string
 param containerEnvironmentName string
 param mapRendererStorageAccountName string = ''
 
-@description('Whether to use CDN for the web map. This can improve performance, enables caching and supports compression, but may incur additional costs.')
-param useCdn bool = true
+@description('The deployment mode of the web map. This can be either "storage" (default), "cdn" or "container". Read the documentation for more information.')
+param deploymentMode 'cdn' | 'container' = 'cdn'
 
 param webMapHostName string = ''
 
@@ -24,6 +24,8 @@ var renderingContainerImage = 'ghcr.io/bluemap-minecraft/bluemap:latest'
 var webMapContainerAppName = '${const.abbr.containerApp}-${projectName}-map-web'
 var cdnName = '${const.abbr.cdn}-${projectName}-map-web'
 
+var webImageName = 'caddy:2.8'
+
 var const = loadJsonContent('../const.json')
 
 var cronSchedules = {
@@ -35,7 +37,7 @@ var cronSchedules = {
 
 var cronExpression = cronSchedules[schedule]
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+resource rendererStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
   name: mapRendererStorageAccountName
 }
 
@@ -49,8 +51,8 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-prev
       azureFile: {
         accessMode: 'ReadWrite'
         shareName: const.renderer.webShareName
-        accountName: storageAccount.name
-        accountKey: storageAccount.listKeys().keys[0].value
+        accountName: rendererStorageAccount.name
+        accountKey: rendererStorageAccount.listKeys().keys[0].value
       }
     }
   }
@@ -62,8 +64,21 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-prev
       azureFile: {
         accessMode: 'ReadWrite'
         shareName: const.renderer.blueMapShareName
-        accountName: storageAccount.name
-        accountKey: storageAccount.listKeys().keys[0].value
+        accountName: rendererStorageAccount.name
+        accountKey: rendererStorageAccount.listKeys().keys[0].value
+      }
+    }
+  }
+
+  // Caddy config
+  resource caddyStorage 'storages' = {
+    name: const.containerEnvCaddyStorageName
+    properties: {
+      azureFile: {
+        accessMode: 'ReadWrite'
+        shareName: const.renderer.caddyShareName
+        accountName: rendererStorageAccount.name
+        accountKey: rendererStorageAccount.listKeys().keys[0].value
       }
     }
   }
@@ -163,15 +178,31 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
           storageType: 'AzureFile'
           name: const.containerEnvMapWebStorageName
         }
+        {
+          // Caddy
+          storageName: const.containerEnvCaddyStorageName
+          storageType: 'AzureFile'
+          name: const.containerEnvCaddyStorageName
+        }
       ]
       containers: [
         {
           name: 'web'
-          image: 'nginx'
+          image: webImageName
           volumeMounts: [
             {
-              mountPath: '/usr/share/nginx/html'
+              mountPath: '/srv'
               volumeName: const.containerEnvMapWebStorageName
+            }
+            {
+              mountPath: '/etc/caddy'
+              volumeName: const.containerEnvCaddyStorageName
+              subPath: 'config'
+            }
+            {
+              mountPath: '/data'
+              volumeName: const.containerEnvCaddyStorageName
+              subPath: 'data'
             }
           ]
           resources:{
@@ -184,7 +215,7 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
   }
 }
 
-resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (useCdn) {
+resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (deploymentMode == 'cdn') {
   name: cdnName
   location: 'Global'
   sku: {
@@ -260,4 +291,4 @@ resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (useCdn) {
 output webMapContainerAppName string = webMapContainerApp.name
 output rendererContainerJobName string = rendererContainerJob.name
 
-output webMapFqdn string = useCdn ? cdn::endpoint.properties.hostName : webMapContainerApp.properties.latestRevisionFqdn
+output webMapFqdn string = deploymentMode == 'cdn' ? cdn::endpoint.properties.hostName : webMapContainerApp.properties.latestRevisionFqdn
