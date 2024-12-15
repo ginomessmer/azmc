@@ -14,8 +14,10 @@ http:// {
     }
   }
 
+
   # Respond with 204 for non-existent map-tiles
   @204 path */tiles/*
+
   handle @204 {
     try_files {path} =204
   }
