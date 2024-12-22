@@ -27,8 +27,6 @@ param deployRenderer bool = false
   'every5Minutes'
 ])
 param rendererSchedule string = 'weekly'
-@description('Use the CDN to serve the rendered map. If false, the rendered map will be served from the Container App.')
-param useCdn bool = true
 @description('The host name for the web map.')
 param mapHostName string = ''
 
@@ -139,7 +137,6 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
     schedule: rendererSchedule
     containerEnvironmentName: containerEnvironment.outputs.containerEnvironmentName
     mapRendererStorageAccountName: storageRenderer.outputs.storageAccountPublicMapName
-    deploymentMode: 'cdn'
     webMapHostName: mapHostName
   }
 }
