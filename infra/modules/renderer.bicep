@@ -35,7 +35,7 @@ resource rendererStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' e
   name: mapRendererStorageAccountName
 }
 
-resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-preview' existing = {
+resource containerEnvironment 'Microsoft.App/managedEnvironments@2024-10-02-preview' existing = {
   name: containerEnvironmentName
 
   // Web map
@@ -161,7 +161,7 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
   }
 }
 
-resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
+resource webMapContainerApp 'Microsoft.App/containerApps@2024-10-02-preview' = {
   name: webMapContainerAppName
   location: location
   properties: {
@@ -171,12 +171,13 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
         allowInsecure: false
         targetPort: 80
         external: true
-        customDomains: !empty(webMapHostName) ? [
+        customDomains: empty(webMapHostName) ? [] : [
           {
             name: webMapHostName
             certificateId: containerEnvironment::managedCertificate.id
+            bindingType: 'Auto'
           }
-        ] : []
+        ]
       }
     }
     template: {
