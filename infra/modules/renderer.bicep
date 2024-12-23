@@ -76,15 +76,6 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2024-10-02-prev
       }
     }
   }
-
-  resource managedCertificate 'managedCertificates' = if(!empty(webMapHostName)) {
-    name: 'certifcate'
-    location: location
-    properties: {
-      domainControlValidation: 'HTTP'
-      subjectName: webMapHostName
-    }
-  }
 }
 
 // Container Job for renderer
@@ -174,8 +165,7 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2024-10-02-preview' = {
         customDomains: empty(webMapHostName) ? [] : [
           {
             name: webMapHostName
-            certificateId: containerEnvironment::managedCertificate.id
-            bindingType: 'Auto'
+            bindingType: 'Disabled'
           }
         ]
       }
