@@ -76,6 +76,15 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-prev
       }
     }
   }
+
+  resource managedCertificate 'managedCertificates' = if(!empty(webMapHostName)) {
+    name: 'certifcate'
+    location: location
+    properties: {
+      domainControlValidation: 'HTTP'
+      subjectName: webMapHostName
+    }
+  }
 }
 
 // Container Job for renderer
