@@ -136,3 +136,19 @@ jobs:
               --share-name $SHARE_NAME \
               --source config/caddy/Caddyfile \
               --path $SHARE_PATH
+
+  provision-https-certificate:
+    runs-on: ubuntu-latest
+    name: Provision HTTPS Certificate
+    needs: deploy
+    environment: ${{ github.event.inputs.environment }}
+    if: ${{ github.event.inputs.whatif_only == 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
