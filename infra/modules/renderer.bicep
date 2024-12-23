@@ -174,6 +174,7 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
         customDomains: !empty(webMapHostName) ? [
           {
             name: webMapHostName
+            certificateId: containerEnvironment::managedCertificate.id
           }
         ] : []
       }
