@@ -178,7 +178,7 @@ jobs:
               -f infra/utils/certificates.bicep \
               -p managedEnvironmentName=${{ steps.parameters.outputs.managedEnvironmentName }} \
               -p webMapHostName=${{ steps.parameters.outputs.webMapHostName }}
-            echo "id=$(az deployment group show -n certificate -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.managedCertificateId -o tsv)" >> $GITHUB_OUTPUT
+            echo "id=$(az deployment group show -n certificate -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.managedCertificateId.value -o tsv)" >> $GITHUB_OUTPUT
 
 
       - name: Add Domain to Container App
