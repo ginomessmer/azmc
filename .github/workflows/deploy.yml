@@ -64,6 +64,7 @@ jobs:
               ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
 
       - name: Job Summary
+        if: ${{ github.event.inputs.skip_whatif == 'false' && github.event.inputs.environment != 'production' }}
         run: |
           WHATIF=$(cat whatif)
           echo "## What If Output" >> $GITHUB_STEP_SUMMARY
