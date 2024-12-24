@@ -152,3 +152,24 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Managed Environment Name
+        id: managed_environment_name
+        run: |
+          echo "managedEnvironmentName=$(az deployment group show -n containerEnvironment -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.containerEnvironmentName.value -o tsv)" >> $GITHUB_OUTPUT
+
+      - name: Get Web Map Container App Name
+        id: web_map_container_app_name
+        run: |
+          echo "webMapContainerAppName=$(az deployment group show -n rendering -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.webMapContainerAppName.value -o tsv)" >> $GITHUB_OUTPUT
+
+      - name: Deploy Managed Certificate
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            az deployment group create -n ${{ env.DEPLOYMENT_NAME }}_certificate \
+              -f infra/utils/certificates.bicep \
+              -g ${{ secrets.AZURE_RG_NAME }} \
+              ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} \
+              -p managedEnvironmentName="${{ steps.managed_environment_name.outputs.managedEnvironmentName }}" \
+              -p webMapContainerAppName="${{ steps.web_map_container_app_name.outputs.webMapContainerAppName }}"
