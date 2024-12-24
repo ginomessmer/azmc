@@ -157,7 +157,7 @@ jobs:
         id: parameters
         run: |
           echo "managedEnvironmentName=$(az deployment group show -n containerEnvironment -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.containerEnvironmentName.value -o tsv)" >> $GITHUB_OUTPUT
-          az deployment group show -n rendering -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.webMapContainerAppName.value -o tsv > $WEB_MAP_CONTAINER_APP_NAME
+          WEB_MAP_CONTAINER_APP_NAME=$(az deployment group show -n rendering -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.webMapContainerAppName.value -o tsv)
           echo "webMapContainerAppName=$WEB_MAP_CONTAINER_APP_NAME" >> $GITHUB_OUTPUT
           echo "webMapHostName=$(az deployment group show -n ${{ env.DEPLOYMENT_NAME }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.parameters.mapHostName.value -o tsv)" >> $GITHUB_OUTPUT
           echo "webMapContainerAppId=$( az containerapp show -n $WEB_MAP_CONTAINER_APP_NAME -g ${{ secrets.AZURE_RG_NAME }} --query id -o tsv)" >> $GITHUB_OUTPUT
