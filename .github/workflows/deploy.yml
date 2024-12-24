@@ -182,6 +182,11 @@ jobs:
         run: |
           echo "webMapContainerAppName=$(az deployment group show -n rendering -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.webMapContainerAppName.value -o tsv)" >> $GITHUB_OUTPUT
 
+      - name: Get Web Map Host Name
+        id: web_map_host_name
+        run: |
+          echo "webMapHostName=$(az deployment group show -n ${{ env.DEPLOYMENT_NAME }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.parameters.mapHostName.value -o tsv)" >> $GITHUB_OUTPUT
+      
       - name: Deploy Managed Certificate
         uses: azure/cli@v1
         with:
@@ -189,6 +194,6 @@ jobs:
             az deployment group create -n ${{ env.DEPLOYMENT_NAME }}_certificate \
               -f infra/utils/certificates.bicep \
               -g ${{ secrets.AZURE_RG_NAME }} \
-              ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} \
               -p managedEnvironmentName="${{ steps.managed_environment_name.outputs.managedEnvironmentName }}" \
-              -p webMapContainerAppName="${{ steps.web_map_container_app_name.outputs.webMapContainerAppName }}"
+              -p webMapContainerAppName="${{ steps.web_map_container_app_name.outputs.webMapContainerAppName }}" \
+              -p webMapHostName="${{ steps.web_map_host_name.outputs.webMapHostName }}" \
