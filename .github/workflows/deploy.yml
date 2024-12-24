@@ -101,6 +101,25 @@ jobs:
             az deployment group create -n ${{ env.DEPLOYMENT_NAME }} \
               ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
 
+      - name: Create Summary
+        id: summary
+        run: |
+          echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
+          echo "## ARM Deployment Output" >> $GITHUB_OUTPUT
+          echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo '```log' >> $GITHUB_OUTPUT
+          az deployment group show -n ${{ env.DEPLOYMENT_NAME }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs -o json >> $GITHUB_OUTPUT
+          echo '```' >> $GITHUB_OUTPUT
+          echo "</details>" >> $GITHUB_OUTPUT
+          echo "${delimiter}" >> $GITHUB_OUTPUT
+
+      - name: Publish Summary
+        env:
+          SUMMARY: ${{ steps.summary.outputs.summary }}
+        run: |
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
   configure_map:
     runs-on: ubuntu-latest
     name: Configure Web Map
