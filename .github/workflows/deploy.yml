@@ -60,7 +60,6 @@ jobs:
       - name: Job Summary
         run: |
           WHATIF=$(cat whatif)
-          echo "summary<<${delimiter}" >> $GITHUB_STEP_SUMMARY
           echo "## What If Output" >> $GITHUB_STEP_SUMMARY
           echo "<details><summary>Click to expand</summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
