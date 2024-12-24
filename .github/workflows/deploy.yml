@@ -8,6 +8,11 @@ on:
         required: true
         default: development
         type: environment
+      skip_whatif:
+        description: 'Skip What If'
+        required: false
+        default: false
+        type: boolean
       whatif_only:
         description: 'Only run What If'
         required: false
@@ -40,6 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     name: What If
     environment: ${{ github.event.inputs.environment }}
+    if: ${{ github.event.inputs.skip_whatif == 'false' }}
     steps:
       - uses: actions/checkout@v4
 
