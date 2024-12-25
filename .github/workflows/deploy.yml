@@ -185,5 +185,5 @@ jobs:
         uses: azure/cli@v1
         with:
           inlineScript: |
-            az resource update --ids ${{ steps.parameters.outputs.webMapContainerAppId }} --debug \
-              --properties "{\"properties\": {\"configuration\": {\"ingress\": {\"customDomains\": [{\"name\": \"${{ steps.parameters.outputs.webMapHostName }}\", \"certificateId\": \"${{ steps.deploy_certificate.outputs.id }}\", \"bindingType\": \"Auto\"}]}}}}"
+            az resource patch --ids ${{ steps.parameters.outputs.webMapContainerAppId }} --debug \
+              --properties "{\"properties\": {\"configuration\": {\"ingress\": {\"customDomains\": [{\"name\": \"${{ steps.parameters.outputs.webMapHostName }}\", \"certificateId\": \"${{ steps.deploy_certificate.outputs.id }}\", \"bindingType\": \"SniEnabled\"}]}}}}"
