@@ -172,7 +172,7 @@ jobs:
       - name: Check Managed Certificate
         id: managed_certificate
         run: |
-          MANAGED_CERTIFICATE_ID=$(az containerapp hostname list --hostname ${{ steps.parameters.outputs.webMapHostName }} -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.parameters.outputs.webMapContainerAppName }} -o tsv)
+          MANAGED_CERTIFICATE_ID=$(az containerapp hostname list -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.parameters.outputs.webMapContainerAppName }} -o tsv)
           if [ -z "$MANAGED_CERTIFICATE_ID" ]; then
             echo "MANAGED_CERTIFICATE_ID=0" >> $GITHUB_OUTPUT
           else
