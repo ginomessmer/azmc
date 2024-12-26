@@ -188,7 +188,6 @@ jobs:
             az containerapp hostname add  --hostname ${{ steps.parameters.outputs.webMapHostName }} \
               -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.parameters.outputs.webMapContainerAppName }} \
 
-
       - name: Bind Host Name Managed Certificate to Container App
         uses: azure/cli@v1
         timeout-minutes: 30
