@@ -191,7 +191,7 @@ jobs:
 
       - name: Add Host Name to Container App
         uses: azure/cli@v1
-        if: ${{ steps.managed_certificate.outputs.BINDING_TYPE == 'Disabled' }}
+        if: ${{ steps.managed_certificate.outputs.BINDING_TYPE == '' }}
         with:
           inlineScript: |
             az containerapp hostname add  --hostname ${{ steps.parameters.outputs.webMapHostName }} \
