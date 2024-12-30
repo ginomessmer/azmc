@@ -185,8 +185,8 @@ jobs:
           FQDN=$(az containerapp show -n ${{ steps.parameters.outputs.webMapContainerAppName }} -g ${{ secrets.AZURE_RG_NAME }} -o tsv --query properties.configuration.ingress.fqdn)
           VERIFICATION_ID=$(az containerapp show -n ${{ steps.parameters.outputs.webMapContainerAppName }} -g ${{ secrets.AZURE_RG_NAME }} -o tsv --query properties.customDomainVerificationId)
           echo "## Domain Setup"                                                                                  >> $GITHUB_STEP_SUMMARY
-          echo "- FQDN: `$FQDN`"                                                                                  >> $GITHUB_STEP_SUMMARY
-          echo "- Domain Verification ID: `$VERIFICATION_ID`"                                                     >> $GITHUB_STEP_SUMMARY
+          echo "- FQDN: \`$FQDN\`"                                                                                  >> $GITHUB_STEP_SUMMARY
+          echo "- Domain Verification ID: \`$VERIFICATION_ID\`"                                                     >> $GITHUB_STEP_SUMMARY
           echo "---"                                                                                              >> $GITHUB_STEP_SUMMARY
           echo "See: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates"  >> $GITHUB_STEP_SUMMARY
 
