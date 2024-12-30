@@ -172,12 +172,7 @@ jobs:
       - name: Check Managed Certificate
         id: managed_certificate
         run: |
-          MANAGED_CERTIFICATE_ID=$(az containerapp hostname list -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.parameters.outputs.webMapContainerAppName }} -o tsv)
-          if [ -z "$MANAGED_CERTIFICATE_ID" ]; then
-            echo "MANAGED_CERTIFICATE_ID=0" >> $GITHUB_OUTPUT
-          else
-            echo "MANAGED_CERTIFICATE_ID=$MANAGED_CERTIFICATE_ID" >> $GITHUB_OUTPUT
-          fi
+          echo "MANAGED_CERTIFICATE_BINDING_TYPE=$(az containerapp hostname list -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.parameters.outputs.webMapContainerAppName }} -o tsv --query [].bindingType)" >> $GITHUB_OUTPUT
       
       # Reference: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates?tabs=general&pivots=azure-cli#add-a-custom-domain-and-managed-certificate
       - name: Domain Verification
@@ -193,7 +188,7 @@ jobs:
 
       - name: Add Host Name to Container App
         uses: azure/cli@v1
-        if: ${{ steps.managed_certificate.outputs.MANAGED_CERTIFICATE_ID == '0' }}
+        if: ${{ steps.managed_certificate.outputs.MANAGED_CERTIFICATE_BINDING_TYPE == 'Disabled' }}
         with:
           inlineScript: |
             az containerapp hostname add  --hostname ${{ steps.parameters.outputs.webMapHostName }} \
@@ -202,7 +197,7 @@ jobs:
       - name: Bind Host Name Managed Certificate to Container App
         uses: azure/cli@v1
         timeout-minutes: 30
-        if: ${{ steps.managed_certificate.outputs.MANAGED_CERTIFICATE_ID == '0' }}
+        if: ${{ steps.managed_certificate.outputs.MANAGED_CERTIFICATE_BINDING_TYPE == 'Disabled' }}
         with:
           inlineScript: |
             az containerapp hostname bind --hostname ${{ steps.parameters.outputs.webMapHostName }} \
