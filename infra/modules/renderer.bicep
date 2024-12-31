@@ -215,6 +215,7 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2024-10-02-preview' = {
   }
 }
 
+output webMapContainerAppId string = webMapContainerApp.id
 output webMapContainerAppName string = webMapContainerApp.name
 output rendererContainerJobName string = rendererContainerJob.name
 

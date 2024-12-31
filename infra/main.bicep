@@ -195,6 +195,7 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
     projectName: name
     
     discordBotContainerAppId: deployDiscordBot ? discordBot.outputs.containerAppId : ''
+    webMapContainerAppId: deployRenderer ? renderer.outputs.webMapContainerAppId : ''
     minecraftServerContainerInstanceName: server.outputs.containerGroupName
     serverStorageAccountId: storageServer.outputs.storageAccountId
   }

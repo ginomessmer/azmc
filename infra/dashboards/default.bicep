@@ -3,6 +3,7 @@ param projectName string
 
 param minecraftServerContainerInstanceName string
 param discordBotContainerAppId string
+param webMapContainerAppId string
 param serverStorageAccountId string
 
 var const = loadJsonContent('../const.json')
@@ -706,6 +707,101 @@ resource mainDashboard 'Microsoft.Portal/dashboards@2020-09-01-preview' = {
                     }
                   }
                 }
+              }
+            }
+          }
+          {
+            position: {
+              x: 12
+              y: 4
+              rowSpan: 1
+              colSpan: 2
+            }
+            metadata: {
+              inputs: [
+                {
+                  name: 'id'
+                  value: webMapContainerAppId
+                  isOptional: true
+                }
+                {
+                  name: 'resourceId'
+                  isOptional: true
+                }
+                {
+                  name: 'menuid'
+                  isOptional: true
+                }
+              ]
+              type: 'Extension/HubsExtension/PartType/ResourcePart'
+            }
+          }
+          {
+            position: {
+              x: 14
+              y: 4
+              rowSpan: 4
+              colSpan: 5
+            }
+            metadata: {
+              inputs: [
+                {
+                  name: 'options'
+                  value: {
+                    chart: {
+                      metrics: [
+                        {
+                          resourceMetadata: {
+                            id: webMapContainerAppId
+                          }
+                          name: 'Requests'
+                          aggregationType: 1
+                          namespace: 'microsoft.app/containerapps'
+                          metricVisualization: {
+                            displayName: 'Requests'
+                          }
+                        }
+                      ]
+                      title: 'Sum Requests for Web Map'
+                      titleKind: 1
+                      visualization: {
+                        chartType: 2
+                        legendVisualization: {
+                          isVisible: true
+                          position: 2
+                          hideHoverCard: false
+                          hideLabelNames: true
+                        }
+                        axisVisualization: {
+                          x: {
+                            isVisible: true
+                            axisType: 2
+                          }
+                          y: {
+                            isVisible: true
+                            axisType: 1
+                          }
+                        }
+                      }
+                      timespan: {
+                        relative: {
+                          duration: 86400000
+                        }
+                        showUTCTime: false
+                        grain: 1
+                      }
+                    }
+                  }
+                  isOptional: true
+                }
+                {
+                  name: 'sharedTimeRange'
+                  isOptional: true
+                }
+              ]
+              type: 'Extension/HubsExtension/PartType/MonitorChartPart'
+              settings: {
+                content: {}
               }
             }
           }
