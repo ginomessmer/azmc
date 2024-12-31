@@ -56,7 +56,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: What If
-        uses: Azure/cli@v2.1.0
+        uses: Azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
         if: ${{ github.event.inputs.skip_whatif == 'false' && github.event.inputs.environment != 'production' }}
         with:
           inlineScript: |
@@ -92,7 +92,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy Infrastructure to Azure
-        uses: Azure/cli@v2.1.0
+        uses: Azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
         with:
           inlineScript: |
             az deployment group create -n ${{ env.DEPLOYMENT_NAME }} \
@@ -130,7 +130,7 @@ jobs:
           echo "NAME=$(az deployment group show -n storageRenderer -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.storageAccountPublicMapName.value -o tsv)" >> $GITHUB_OUTPUT
 
       - name: Upload Caddyfile to Azure Storage
-        uses: Azure/cli@v2.1.0
+        uses: Azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
         env:
           AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
           SHARE_NAME: caddy
@@ -190,7 +190,7 @@ jobs:
           echo "See: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates"  >> $GITHUB_STEP_SUMMARY
 
       - name: Add Host Name to Container App
-        uses: Azure/cli@v2.1.0
+        uses: Azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
         if: ${{ steps.managed_certificate.outputs.BINDING_TYPE == '' }}
         with:
           inlineScript: |
@@ -198,7 +198,7 @@ jobs:
               -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.parameters.outputs.webMapContainerAppName }} \
 
       - name: Bind Host Name Managed Certificate to Container App
-        uses: Azure/cli@v2.1.0
+        uses: Azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
         timeout-minutes: 30
         if: ${{ steps.managed_certificate.outputs.BINDING_TYPE == 'Disabled' }}
         with:
