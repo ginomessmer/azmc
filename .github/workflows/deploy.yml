@@ -57,14 +57,14 @@ jobs:
 
       - name: What If
         uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
-        if: ${{ github.event.inputs.skip_whatif == 'false' && github.event.inputs.environment != 'production' }}
+        if: ${{ github.event.inputs.skip_whatif == 'false' || github.event.inputs.environment == 'production' }}
         with:
           inlineScript: |
             az deployment group what-if \
               ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
 
       - name: Job Summary
-        if: ${{ github.event.inputs.skip_whatif == 'false' && github.event.inputs.environment != 'production' }}
+        if: ${{ github.event.inputs.skip_whatif == 'false' || github.event.inputs.environment == 'production' }}
         run: |
           WHATIF=$(cat whatif)
           echo "## What If Output" >> $GITHUB_STEP_SUMMARY
