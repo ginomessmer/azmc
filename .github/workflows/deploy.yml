@@ -167,8 +167,7 @@ jobs:
         id: parameters
         run: |
           echo "MANAGED_ENVIRONMENT_NAME=$(az deployment group show -n containerEnvironment -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.containerEnvironmentName.value -o tsv)" >> $GITHUB_OUTPUT
-          WEB_MAP_CONTAINER_APP_NAME=$(az deployment group show -n ${{ matrix.modules }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.WEB_MAP_CONTAINER_NAME.value -o tsv)
-          echo "WEB_MAP_CONTAINER_NAME=$WEB_MAP_CONTAINER_APP_NAME" >> $GITHUB_OUTPUT
+          echo "WEB_MAP_CONTAINER_NAME=$(az deployment group show -n ${{ matrix.modules }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.webMapContainerAppName.value -o tsv)" >> $GITHUB_OUTPUT
           echo "WEB_MAP_HOST_NAME=$(az deployment group show -n ${{ env.DEPLOYMENT_NAME }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.parameters.mapHostName.value -o tsv)" >> $GITHUB_OUTPUT
     
       - name: Check Managed Certificate
