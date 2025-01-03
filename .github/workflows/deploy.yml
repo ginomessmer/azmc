@@ -8,6 +8,11 @@ on:
         required: true
         default: development
         type: environment
+      skip_whatif:
+        description: 'Skip What If'
+        required: false
+        default: false
+        type: boolean
       whatif_only:
         description: 'Only run What If'
         required: false
@@ -44,39 +49,31 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Login to Azure
-        uses: azure/login@v1
+        uses: azure/login@a65d910e8af852a8061c627c456678983e180302
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: What If
-        uses: azure/cli@v1
+        uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
+        if: ${{ github.event.inputs.skip_whatif == 'false' && github.event.inputs.environment != 'production' }}
         with:
           inlineScript: |
             az deployment group what-if \
               ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
 
-      - name: Create Job Summary
-        id: whatif-string
+      - name: Job Summary
+        if: ${{ github.event.inputs.skip_whatif == 'false' && github.event.inputs.environment != 'production' }}
         run: |
           WHATIF=$(cat whatif)
-          delimiter="$(openssl rand -hex 8)"
-          echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
-          echo "## ARM What If Output" >> $GITHUB_OUTPUT
-          echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo '```log' >> $GITHUB_OUTPUT
-          echo "$WHATIF" >> $GITHUB_OUTPUT
-          echo '```' >> $GITHUB_OUTPUT
-          echo "</details>" >> $GITHUB_OUTPUT
-          echo "${delimiter}" >> $GITHUB_OUTPUT
-
-      - name: Publish Job Summary
-        env:
-          SUMMARY: ${{ steps.whatif-string.outputs.summary }}
-        run: |
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+          echo "## What If Output" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>Click to expand</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```log' >> $GITHUB_STEP_SUMMARY
+          echo "$WHATIF" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
 
   deploy:
     runs-on: ubuntu-latest
@@ -88,18 +85,28 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Login to Azure
-        uses: azure/login@v1
+        uses: azure/login@a65d910e8af852a8061c627c456678983e180302
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy Infrastructure to Azure
-        uses: azure/cli@v1
+        uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
         with:
           inlineScript: |
             az deployment group create -n ${{ env.DEPLOYMENT_NAME }} \
               ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
+
+      - name: Job Summary
+        run: |
+          echo "## Deployment Output" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>Click to expand</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          az deployment group show -n ${{ env.DEPLOYMENT_NAME }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs -o json >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
 
   configure_map:
     runs-on: ubuntu-latest
@@ -111,7 +118,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Login to Azure
-        uses: azure/login@v1
+        uses: azure/login@a65d910e8af852a8061c627c456678983e180302
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -123,7 +130,7 @@ jobs:
           echo "NAME=$(az deployment group show -n storageRenderer -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.storageAccountPublicMapName.value -o tsv)" >> $GITHUB_OUTPUT
 
       - name: Upload Caddyfile to Azure Storage
-        uses: azure/cli@v1
+        uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
         env:
           AZURE_STORAGE_ACCOUNT: ${{ steps.storage_account.outputs.NAME }}
           SHARE_NAME: caddy
@@ -136,3 +143,66 @@ jobs:
               --share-name $SHARE_NAME \
               --source config/caddy/Caddyfile \
               --path $SHARE_PATH
+
+  provision-https-certificate:
+    runs-on: ubuntu-latest
+    name: Secure Host Names
+    needs: deploy
+    environment: ${{ github.event.inputs.environment }}
+    if: ${{ github.event.inputs.whatif_only == 'false' }}
+    strategy:
+      matrix:
+        modules: [ 'rendering' ]      
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@a65d910e8af852a8061c627c456678983e180302
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Required Parameters
+        id: parameters
+        run: |
+          echo "MANAGED_ENVIRONMENT_NAME=$(az deployment group show -n containerEnvironment -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.containerEnvironmentName.value -o tsv)" >> $GITHUB_OUTPUT
+          echo "WEB_MAP_CONTAINER_NAME=$(az deployment group show -n ${{ matrix.modules }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.webMapContainerAppName.value -o tsv)" >> $GITHUB_OUTPUT
+          echo "WEB_MAP_HOST_NAME=$(az deployment group show -n ${{ env.DEPLOYMENT_NAME }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.parameters.mapHostName.value -o tsv)" >> $GITHUB_OUTPUT
+    
+      - name: Check Managed Certificate
+        id: managed_certificate
+        run: |
+          echo "BINDING_TYPE=$(az containerapp hostname list -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.parameters.outputs.WEB_MAP_CONTAINER_NAME }} -o tsv --query [].bindingType)" >> $GITHUB_OUTPUT
+      
+      # Reference:
+      # https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates?tabs=general&pivots=azure-cli#add-a-custom-domain-and-managed-certificate
+      - name: Domain Verification
+        run: |
+          FQDN=$(az containerapp show -n ${{ steps.parameters.outputs.WEB_MAP_CONTAINER_NAME }} -g ${{ secrets.AZURE_RG_NAME }} -o tsv --query properties.configuration.ingress.fqdn)
+          VERIFICATION_ID=$(az containerapp show -n ${{ steps.parameters.outputs.WEB_MAP_CONTAINER_NAME }} -g ${{ secrets.AZURE_RG_NAME }} -o tsv --query properties.customDomainVerificationId)
+          echo "## Domain Setup"                                                                                  >> $GITHUB_STEP_SUMMARY
+          echo "### Web Map"                                                                                      >> $GITHUB_STEP_SUMMARY
+          echo "- FQDN: \`$FQDN\`"                                                                                >> $GITHUB_STEP_SUMMARY
+          echo "- Domain Verification ID: \`$VERIFICATION_ID\`"                                                   >> $GITHUB_STEP_SUMMARY
+          echo "---"                                                                                              >> $GITHUB_STEP_SUMMARY
+          echo "See: https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates"  >> $GITHUB_STEP_SUMMARY
+
+      - name: Add Host Name to Container App
+        uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
+        if: ${{ steps.managed_certificate.outputs.BINDING_TYPE == '' }}
+        with:
+          inlineScript: |
+            az containerapp hostname add  --hostname ${{ steps.parameters.outputs.WEB_MAP_HOST_NAME }} \
+              -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.parameters.outputs.WEB_MAP_CONTAINER_NAME }} \
+
+      - name: Bind Host Name Managed Certificate to Container App
+        uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
+        timeout-minutes: 30
+        if: ${{ steps.managed_certificate.outputs.BINDING_TYPE == 'Disabled' }}
+        with:
+          inlineScript: |
+            az containerapp hostname bind --hostname ${{ steps.parameters.outputs.WEB_MAP_HOST_NAME }} \
+              -g ${{ secrets.AZURE_RG_NAME }} -n ${{ steps.parameters.outputs.WEB_MAP_CONTAINER_NAME }} \
+              --environment ${{ steps.parameters.outputs.MANAGED_ENVIRONMENT_NAME }} \
+              --validation-method HTTP

@@ -4,11 +4,6 @@ param projectName string
 param containerEnvironmentName string
 param mapRendererStorageAccountName string = ''
 
-@description('The deployment mode of the web map. This can be either "storage" (default), "cdn" or "container". Read the documentation for more information.')
-param deploymentMode 'cdn' | 'container' = 'cdn'
-
-param webMapHostName string = ''
-
 @description('The schedule for the renderer job. The renderer job will be triggered according to this schedule.')
 @allowed([
   'weekly'
@@ -21,9 +16,8 @@ param schedule string = 'weekly'
 var rendererContainerJobName = '${const.abbr.containerJob}-${projectName}-renderer'
 var renderingContainerImage = 'ghcr.io/bluemap-minecraft/bluemap:latest'
 
+param webMapHostName string = ''
 var webMapContainerAppName = '${const.abbr.containerApp}-${projectName}-map-web'
-var cdnName = '${const.abbr.cdn}-${projectName}-map-web'
-
 var webImageName = 'caddy:2.8'
 
 var const = loadJsonContent('../const.json')
@@ -41,7 +35,7 @@ resource rendererStorageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' e
   name: mapRendererStorageAccountName
 }
 
-resource containerEnvironment 'Microsoft.App/managedEnvironments@2023-08-01-preview' existing = {
+resource containerEnvironment 'Microsoft.App/managedEnvironments@2024-10-02-preview' existing = {
   name: containerEnvironmentName
 
   // Web map
@@ -158,7 +152,7 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
   }
 }
 
-resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
+resource webMapContainerApp 'Microsoft.App/containerApps@2024-10-02-preview' = {
   name: webMapContainerAppName
   location: location
   properties: {
@@ -168,6 +162,12 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
         allowInsecure: false
         targetPort: 80
         external: true
+        customDomains: empty(webMapHostName) ? [] : [
+          {
+            name: webMapHostName
+            bindingType: 'Disabled'
+          }
+        ]
       }
     }
     template: {
@@ -215,80 +215,8 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
   }
 }
 
-resource cdn 'Microsoft.Cdn/profiles@2023-07-01-preview' = if (deploymentMode == 'cdn') {
-  name: cdnName
-  location: 'Global'
-  sku: {
-    name: 'Standard_Microsoft'
-  }
-  
-  resource endpoint 'endpoints' = {
-    name: '${projectName}-map'
-    location: 'Global'
-    properties: {
-      originHostHeader: webMapContainerApp.properties.configuration.ingress.fqdn
-      contentTypesToCompress: [
-        'image/png'
-        'application/json'
-      ]
-      isCompressionEnabled: true
-      isHttpsAllowed: true
-      queryStringCachingBehavior: 'UseQueryString'
-      origins: [
-        {
-          name: 'map'
-          properties: {
-            hostName: webMapContainerApp.properties.configuration.ingress.fqdn
-            httpPort: 80
-            httpsPort: 443
-            originHostHeader: webMapContainerApp.properties.configuration.ingress.fqdn
-            priority: 1
-            weight: 1000
-            enabled: true
-          }
-        }
-      ]
-      deliveryPolicy: {
-        rules: [
-          {
-            name: 'RedirectToHttps'
-            conditions: [
-              {
-                name: 'RequestScheme'
-                parameters: {
-                  operator: 'Equal'
-                  typeName: 'DeliveryRuleRequestSchemeConditionParameters'
-                  matchValues: [ 'HTTP' ]
-                  negateCondition: false
-                }
-              }
-            ]
-            actions: [
-              {
-                name: 'UrlRedirect'
-                parameters: {
-                  redirectType: 'Found'
-                  typeName: 'DeliveryRuleUrlRedirectActionParameters'
-                  destinationProtocol: 'Https'
-                }
-              }
-            ]
-            order: 1
-          }
-        ]
-      }
-    }
-
-    resource domain 'customDomains' = if (webMapHostName != '') {
-      name: replace(webMapHostName, '.', '-')
-      properties: {
-        hostName: webMapHostName
-      }
-    }
-  }
-}
-
+output webMapContainerAppId string = webMapContainerApp.id
 output webMapContainerAppName string = webMapContainerApp.name
 output rendererContainerJobName string = rendererContainerJob.name
 
-output webMapFqdn string = deploymentMode == 'cdn' ? cdn::endpoint.properties.hostName : webMapContainerApp.properties.latestRevisionFqdn
+output webMapFqdn string = webMapContainerApp.properties.latestRevisionFqdn
