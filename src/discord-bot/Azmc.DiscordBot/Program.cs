@@ -37,7 +37,7 @@ builder.Services
         var resource = client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ContainerGroupResourceId)).Get();
         return resource;
     })
-    .AddKeyedSingleton<ContainerAppJobResource>("webmap", (services, _) =>
+    .AddKeyedSingleton<ContainerAppJobResource>("renderer", (services, _) =>
     {
         var client = services.GetRequiredService<ArmClient>();
         var options = services.GetRequiredService<IOptions<AzureOptions>>();
