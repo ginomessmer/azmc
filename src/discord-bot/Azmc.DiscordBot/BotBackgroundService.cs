@@ -1,3 +1,4 @@
+using Azmc.DiscordBot.Options;
 using Discord.Interactions;
 using Microsoft.Extensions.Options;
 

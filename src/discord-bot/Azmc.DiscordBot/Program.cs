@@ -1,5 +1,6 @@
 using System.Net.Mime;
 using Azmc.DiscordBot;
+using Azmc.DiscordBot.Options;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;

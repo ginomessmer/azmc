@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Azmc.DiscordBot;
+namespace Azmc.DiscordBot.Options;
 
 /// <summary>
 /// Represents the options for the bot.
