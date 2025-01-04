@@ -3,10 +3,10 @@ using Azmc.DiscordBot;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
+using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.ContainerInstance;
 using Discord.Interactions;
 using Discord.Rest;
-using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateSlimBuilder(args);
@@ -35,6 +35,13 @@ builder.Services
         var client = services.GetRequiredService<ArmClient>();
         var options = services.GetRequiredService<IOptions<AzureOptions>>();
         var resource = client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ContainerGroupResourceId)).Get();
+        return resource;
+    })
+    .AddKeyedSingleton<ContainerAppJobResource>("webmap", (services, _) =>
+    {
+        var client = services.GetRequiredService<ArmClient>();
+        var options = services.GetRequiredService<IOptions<AzureOptions>>();
+        var resource = client.GetContainerAppJobResource(ResourceIdentifier.Parse(options.Value.WebMapRendererContainerJobResourceId)).Get();
         return resource;
     });
 

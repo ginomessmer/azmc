@@ -1,5 +1,3 @@
-using Azure.Core;
-using Azure.ResourceManager;
 using Azure.ResourceManager.ContainerInstance;
 using Discord;
 using Discord.Interactions;
@@ -7,14 +5,9 @@ using Discord.Rest;
 
 namespace Azmc.DiscordBot.Modules;
 
-public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
+public class ServerModule(ContainerGroupResource containerGroupResource) : RestInteractionModuleBase<RestInteractionContext>
 {
-    private readonly ContainerGroupResource _containerGroupResource;
-
-    public ServerModule(ContainerGroupResource containerGroupResource)
-    {
-        _containerGroupResource = containerGroupResource;
-    }
+    private readonly ContainerGroupResource _containerGroupResource = containerGroupResource;
 
     [SlashCommand("status", "Gets the status of the Minecraft server")]
     public Task StatusAsync()
@@ -22,8 +15,8 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
         var state = _containerGroupResource.Data.Containers.First().InstanceView.CurrentState;
         return RespondAsync(embed: new EmbedBuilder()
             .WithTitle("Server status")
-            .WithFields(new EmbedFieldBuilder[]
-            {
+            .WithFields(
+            [
                 new()
                 {
                     Name = "State",
@@ -36,7 +29,7 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
                     Value = state.ExitCode?.ToString() ?? "N/A",
                     IsInline = true
                 }
-            })
+            ])
             .WithColor(Color.Blue)
             .Build());
     }

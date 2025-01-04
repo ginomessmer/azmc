@@ -12,4 +12,9 @@ public class AzureOptions
     /// </summary>
     [Required]
     public string ContainerGroupResourceId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the resource ID of the web map renderer container job.
+    /// </summary>
+    public string? WebMapRendererContainerJobResourceId { get; set; } = null;
 }

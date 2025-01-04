@@ -1,5 +1,4 @@
 using Discord.Interactions;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Azmc.DiscordBot;
@@ -7,24 +6,16 @@ namespace Azmc.DiscordBot;
 /// <summary>
 /// Represents a background service that handles the bot startup functionality.
 /// </summary>
-public class BotBackgroundService : BackgroundService
+public class BotBackgroundService(
+    InteractionService interactionService,
+    IOptions<BotOptions> options,
+    IServiceProvider serviceProvider,
+    ILogger<BotBackgroundService> logger) : BackgroundService
 {
-    private readonly InteractionService _interactionService;
-    private readonly IOptions<BotOptions> _options;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<BotBackgroundService> _logger;
-
-    public BotBackgroundService(
-        InteractionService interactionService,
-        IOptions<BotOptions> options,
-        IServiceProvider serviceProvider,
-        ILogger<BotBackgroundService> logger)
-    {
-        _interactionService = interactionService;
-        _options = options;
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-    }
+    private readonly InteractionService _interactionService = interactionService;
+    private readonly IOptions<BotOptions> _options = options;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly ILogger<BotBackgroundService> _logger = logger;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
