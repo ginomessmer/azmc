@@ -60,12 +60,12 @@ public class BotBackgroundService : BackgroundService
             if (!string.IsNullOrEmpty(_azureOptions.Value.ServerContainerGroupResourceId))
             {
                 _logger.LogInformation("Loading server module...");
-                await _interactionService.AddModuleAsync<ServerModule>(_serviceProvider);
+                await _interactionService.AddModuleAsync<ServerModule>(BuildServiceProviderForModule());
             }
             if (!string.IsNullOrEmpty(_azureOptions.Value.RendererContainerAppJobResourceId))
             {
                 _logger.LogInformation("Loading renderer module...");
-                await _interactionService.AddModuleAsync<RendererModule>(_serviceProvider);
+                await _interactionService.AddModuleAsync<RendererModule>(BuildServiceProviderForModule());
             }
             _logger.LogInformation("Loaded modules");
         }
@@ -82,5 +82,10 @@ public class BotBackgroundService : BackgroundService
         }
 
         _logger.LogInformation("Ready");
+    }
+
+    private IServiceProvider BuildServiceProviderForModule()
+    {
+        return _serviceProvider.CreateScope().ServiceProvider;
     }
 }

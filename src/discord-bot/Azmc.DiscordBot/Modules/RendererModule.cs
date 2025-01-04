@@ -12,6 +12,19 @@ public class RendererModule(AzmcRendererService renderer) : RestInteractionModul
     public async Task UpdateAsync()
     {
         await DeferAsync();
+
+        // Check if there's an active job
+        if (await renderer.GetActiveJobStatus())
+        {
+            await FollowupAsync(embed: new EmbedBuilder()
+                .WithTitle("Map update cannot be started")
+                .WithDescription("There's already an active job running.")
+                .WithColor(Color.Orange)
+                .Build());
+            return;
+        }
+
+        // Otherwise, start the job
         await renderer.UpdateAsync();
         await FollowupAsync(embed: new EmbedBuilder()
             .WithTitle("Map update started")

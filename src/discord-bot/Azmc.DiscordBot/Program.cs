@@ -29,27 +29,27 @@ builder.Services
     })
     .AddSingleton<InteractionService>();
 
+// Azure
+builder.Services.AddSingleton<ArmClient>(_ => new(new DefaultAzureCredential()));
+
 // Server (Container instance)
-builder.Services
-    .AddSingleton<ArmClient>(_ => new(new DefaultAzureCredential()))
-    .AddSingleton<AzmcServerService>(services =>
-    {
-        var client = services.GetRequiredService<ArmClient>();
-        var options = services.GetRequiredService<IOptions<AzureOptions>>();
-        var resource = client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ServerContainerGroupResourceId)).Get();
-        return new AzmcServerService(resource);
-    });
+builder.Services.AddScoped<AzmcServerService>(services =>
+{
+    var client = services.GetRequiredService<ArmClient>();
+    var options = services.GetRequiredService<IOptions<AzureOptions>>();
+    var resource = client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ServerContainerGroupResourceId)).Get();
+    return new AzmcServerService(resource);
+});
 
 
 // Renderer (Container app job)
-builder.Services
-    .AddSingleton<AzmcRendererService>(services =>
-    {
-        var client = services.GetRequiredService<ArmClient>();
-        var options = services.GetRequiredService<IOptions<AzureOptions>>();
-        var resource = client.GetContainerAppJobResource(ResourceIdentifier.Parse(options.Value.RendererContainerAppJobResourceId)).Get();
-        return new AzmcRendererService(resource);
-    });
+builder.Services.AddScoped<AzmcRendererService>(services =>
+{
+    var client = services.GetRequiredService<ArmClient>();
+    var options = services.GetRequiredService<IOptions<AzureOptions>>();
+    var resource = client.GetContainerAppJobResource(ResourceIdentifier.Parse(options.Value.RendererContainerAppJobResourceId)).Get();
+    return new AzmcRendererService(resource);
+});
 
 // Configuration
 builder.Services.AddOptions<BotOptions>().BindConfiguration("Bot").ValidateDataAnnotations().ValidateOnStart();
