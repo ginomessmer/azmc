@@ -1,3 +1,4 @@
+using Azmc.DiscordBot.Modules;
 using Azmc.DiscordBot.Options;
 using Discord.Interactions;
 using Microsoft.Extensions.Options;
@@ -9,12 +10,14 @@ namespace Azmc.DiscordBot;
 /// </summary>
 public class BotBackgroundService(
     InteractionService interactionService,
-    IOptions<BotOptions> options,
+    IOptions<BotOptions> botOptions,
+    IOptions<AzureOptions> azureOptions,
     IServiceProvider serviceProvider,
     ILogger<BotBackgroundService> logger) : BackgroundService
 {
     private readonly InteractionService _interactionService = interactionService;
-    private readonly IOptions<BotOptions> _options = options;
+    private readonly IOptions<BotOptions> _options = botOptions;
+    private readonly IOptions<AzureOptions> _azureOptions = azureOptions;
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly ILogger<BotBackgroundService> _logger = logger;
 
@@ -46,7 +49,12 @@ public class BotBackgroundService(
         using (_logger.BeginScope("Module loader"))
         {
             _logger.LogInformation("Loading modules...");
-            await _interactionService.AddModulesAsync(typeof(BotBackgroundService).Assembly, _serviceProvider);
+            await _interactionService.AddModuleAsync<ServerModule>(_serviceProvider);
+
+            if (_azureOptions.Value.CheckWebMapEnabled())
+            {
+                await _interactionService.AddModuleAsync<WebMapModule>(_serviceProvider);
+            }
             _logger.LogInformation("Loaded modules");
         }
 
