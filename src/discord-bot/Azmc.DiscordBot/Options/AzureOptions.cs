@@ -11,7 +11,7 @@ public class AzureOptions
     /// Gets or sets the resource ID of the Minecraft server container group.
     /// </summary>
     [Required]
-    public string ContainerGroupResourceId { get; set; }
+    public required string GameServerContainerGroupResourceId { get; set; }
 
     /// <summary>
     /// Gets or sets the resource ID of the web map renderer container job.
