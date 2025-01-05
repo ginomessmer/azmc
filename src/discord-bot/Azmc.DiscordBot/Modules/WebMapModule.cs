@@ -39,4 +39,27 @@ public class WebMapModule([FromKeyedServices("renderer")] ContainerAppJobResourc
             .AddField("Duration", lastExecution.Data.EndOn - lastExecution.Data.StartOn, true)
             .Build());
     }
+
+    [SlashCommand("jobs", "Lists the render jobs for the web map")]
+    public async Task JobsAsync()
+    {
+        await DeferAsync();
+        var executions = await _containerAppJobResource.GetContainerAppJobExecutions().ToListAsync();
+
+        if (!executions.Any())
+        {
+            await FollowupAsync("No render jobs have been started. Use `/webmap render` to start one.");
+            return;
+        }
+
+        var embed = new EmbedBuilder()
+            .WithTitle("Web Map Render Jobs");
+
+        foreach (var execution in executions)
+        {
+            embed.AddField($"Job {execution.Data.Name}", $"**Status**: {execution.Data.Status}\n**Started on**: {execution.Data.StartOn}\n**Ended on**: {execution.Data.EndOn}");
+        }
+
+        await FollowupAsync(embed: embed.Build());
+    }
 }
