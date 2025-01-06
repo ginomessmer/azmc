@@ -161,7 +161,7 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2024-10-02-preview' = {
     environmentId: containerEnvironment.id
     configuration: {
       secrets: [
-        {
+        empty(authClientSecret) ? {} : {
           name: const.auth.clientSecretName
           value: authClientSecret
         }
