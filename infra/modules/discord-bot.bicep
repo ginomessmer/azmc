@@ -10,6 +10,9 @@ param botDockerImage string = 'ghcr.io/ginomessmer/azmc/discord-bot'
 @description('The resource ID of the container group that runs the Minecraft server. This is used to interact with the server.')
 param minecraftContainerGroupName string
 
+@description('The resource ID of the web map renderer container job. This is used to interact with the renderer.')
+param rendererContainerJobName string?
+
 @description('The public key of the Discord bot. This is used to verify that the bot is the one that sent a message.')
 @secure()
 param discordBotPublicKey string
@@ -28,6 +31,10 @@ var containerAppName = '${const.abbr.containerApp}-${projectName}-discord-bot'
 
 resource minecraftServerContainerGroup 'Microsoft.ContainerInstance/containerGroups@2021-03-01' existing = {
   name: minecraftContainerGroupName
+}
+
+resource rendererContainerJob 'Microsoft.App/jobs@2024-10-02-preview' existing = if (!empty(rendererContainerJobName)) {
+  name: rendererContainerJobName!
 }
 
 // Container App
@@ -63,8 +70,12 @@ resource discordBotContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
           image: botDockerImage
           env: [
             {
-              name: 'Azure__ContainerGroupResourceId'
+              name: 'Azure__GameServerContainerGroupResourceId'
               value: minecraftServerContainerGroup.id
+            }
+            {
+              name: 'Azure__WebMapRendererContainerJobResourceId'
+              value: !empty(rendererContainerJobName) ? rendererContainerJob.id : null
             }
             {
               name: 'Bot__PublicKey'

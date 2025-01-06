@@ -154,6 +154,7 @@ module discordBot 'modules/discord-bot.bicep' = if(deployDiscordBot && discordBo
 
     containerEnvironmentId: containerEnvironment.outputs.containerEnvironmentId
     minecraftContainerGroupName: server.outputs.containerGroupName
+    rendererContainerJobName: deployRenderer ? renderer.outputs.rendererContainerJobId : null
     discordBotPublicKey: discordBotPublicKey
     discordBotToken: discordBotToken
 
