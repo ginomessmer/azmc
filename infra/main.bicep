@@ -30,6 +30,14 @@ param rendererSchedule string = 'weekly'
 @description('The host name for the web map.')
 param mapHostName string = ''
 
+@description('(optional) The Azure AD client ID for the web map. Only required if deployRenderer is true.')
+@secure()
+param webMapAuthClientId string?
+
+@description('(optional) The Azure AD client secret for the web map. Only required if deployRenderer is true.')
+@secure()
+param webMapAuthClientSecret string?
+
 // Discord bot
 @description('Deploy the Discord bot module. Make sure to supply the public key and token.')
 param deployDiscordBot bool = false
@@ -138,6 +146,15 @@ module renderer 'modules/renderer.bicep' = if(deployRenderer) {
     containerEnvironmentName: containerEnvironment.outputs.containerEnvironmentName
     mapRendererStorageAccountName: storageRenderer.outputs.storageAccountPublicMapName
     webMapHostName: mapHostName
+    authClientSecret: webMapAuthClientSecret
+  }
+}
+
+module rendererAuth 'modules/auth.bicep' = if(!empty(webMapAuthClientId) && deployRenderer) {
+  name: 'rendererAuth'
+  params: {
+    containerAppName: renderer.outputs.webMapContainerAppName
+    clientId: webMapAuthClientId!
   }
 }
 

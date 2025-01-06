@@ -20,6 +20,8 @@ param webMapHostName string = ''
 var webMapContainerAppName = '${const.abbr.containerApp}-${projectName}-map-web'
 var webImageName = 'caddy:2.8'
 
+param authClientSecret string?
+
 var const = loadJsonContent('../const.json')
 
 var cronSchedules = {
@@ -158,6 +160,12 @@ resource webMapContainerApp 'Microsoft.App/containerApps@2024-10-02-preview' = {
   properties: {
     environmentId: containerEnvironment.id
     configuration: {
+      secrets: [
+        {
+          name: const.auth.clientSecretName
+          value: authClientSecret
+        }
+      ]
       ingress: {
         allowInsecure: false
         targetPort: 80

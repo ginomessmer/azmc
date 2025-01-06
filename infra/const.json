@@ -23,5 +23,8 @@
         "dashboard": "dbrd",
         "logicApp": "logic",
         "managedIdentity": "id"
+    },
+    "auth": {
+        "clientSecretName": "auth-client-secret"
     }
 }
