@@ -1,5 +1,6 @@
 param containerAppName string
-var containerAppAuthName = '${containerAppName}-auth'
+
+var const = loadJsonContent('../const.json')
 
 param clientId string
 
@@ -8,7 +9,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-10-02-preview' existing 
 }
 
 resource containerAppAuth 'Microsoft.App/containerApps/authConfigs@2024-10-02-preview' = {
-  name: containerAppAuthName
+  name: 'current'
   parent: containerApp
 
   properties: {
@@ -24,7 +25,7 @@ resource containerAppAuth 'Microsoft.App/containerApps/authConfigs@2024-10-02-pr
         registration: {
           openIdIssuer: 'https://login.microsoftonline.com/consumers/v2.0'
           clientId: clientId
-          clientSecretSettingName: 'client-secret'
+          clientSecretSettingName: const.auth.clientSecretName
         }
         validation: {
           defaultAuthorizationPolicy: {
