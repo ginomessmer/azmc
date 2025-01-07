@@ -20,6 +20,11 @@ resource containerAppAuth 'Microsoft.App/containerApps/authConfigs@2024-10-02-pr
       unauthenticatedClientAction: 'RedirectToLoginPage'
       redirectToProvider: 'AzureActiveDirectory'
     }
+    login: {
+      tokenStore: {
+        enabled: true
+      }
+    }
     identityProviders: {
       azureActiveDirectory: {
         registration: {
