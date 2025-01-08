@@ -35,6 +35,8 @@ param webMapAuthClientId string?
 @description('(optional) The Azure AD client secret for the web map. Only required if deployRenderer is true.')
 @secure()
 param webMapAuthClientSecret string?
+@description('(optional) The list of allowed identities for the web map. Only required if deployRenderer is true.')
+param webMapIdentitiesAllowlist string[] = []
 
 // Discord bot
 @description('Deploy the Discord bot module. Make sure to supply the public key and token.')
@@ -153,6 +155,7 @@ module rendererAuth 'modules/auth.bicep' = if(!empty(webMapAuthClientId) && depl
   params: {
     containerAppName: renderer.outputs.webMapContainerAppName
     clientId: webMapAuthClientId!
+    allowedIdentities: webMapIdentitiesAllowlist
   }
 }
 

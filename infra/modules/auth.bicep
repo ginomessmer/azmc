@@ -2,6 +2,8 @@ param containerAppName string
 
 var const = loadJsonContent('../const.json')
 
+param allowedIdentities string[] = []
+
 param clientId string
 
 resource containerApp 'Microsoft.App/containerApps@2024-10-02-preview' existing = {
@@ -32,8 +34,16 @@ resource containerAppAuth 'Microsoft.App/containerApps/authConfigs@2024-10-02-pr
           clientId: clientId
           clientSecretSettingName: const.auth.clientSecretName
         }
+        login: {
+          loginParameters: [
+            'scope=XboxLive.SignIn'
+          ]
+        }
         validation: {
           defaultAuthorizationPolicy: {
+            allowedPrincipals: {
+              identities: allowedIdentities
+            }
             allowedApplications: [
               clientId
             ]
