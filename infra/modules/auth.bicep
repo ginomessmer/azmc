@@ -34,11 +34,11 @@ resource containerAppAuth 'Microsoft.App/containerApps/authConfigs@2024-10-02-pr
           clientId: clientId
           clientSecretSettingName: const.auth.clientSecretName
         }
-        login: {
-          loginParameters: [
-            'scope=XboxLive.SignIn'
-          ]
-        }
+        // login: {
+        //   loginParameters: [
+        //     'scope=XboxLive.SignIn'
+        //   ]
+        // }
         validation: {
           defaultAuthorizationPolicy: {
             allowedPrincipals: {
