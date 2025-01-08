@@ -37,6 +37,7 @@ env:
     -p dockerHubPassword="${{ secrets.DOCKER_HUB_PAT }}" \
     -p webMapAuthClientId="${{ secrets.WEB_MAP_AUTH_CLIENT_ID }}" \
     -p webMapAuthClientSecret="${{ secrets.WEB_MAP_AUTH_CLIENT_SECRET }}" \
+    -p webMapIdentitiesAllowlist="[${{ secrets.WEB_MAP_IDENTITIES_ALLOWLIST }}]" \
     ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} \
     ${{ github.event.inputs.additional_params }} > whatif
   DEPLOYMENT_NAME: ${{ github.run_id }}
