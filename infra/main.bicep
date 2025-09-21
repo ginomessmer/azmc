@@ -5,6 +5,8 @@ param name string = 'azmc'
 @description('Accept the Minecraft Server EULA.')
 @allowed([true])
 param acceptEula bool
+@description('The desired Minecraft server version')
+param minecraftVersion string = 'LATEST'
 @description('The memory size of the server in GB. Increase for large servers or maps.')
 param serverMemorySize int = 3
 @description('The type of server to deploy. Check the documentation for the list of supported server types: https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/. Commonly used types are SPIGOT, PAPER, and FORGE.')
@@ -80,6 +82,7 @@ module server 'modules/server.bicep' = {
     location: location
     acceptEula: acceptEula
     serverType: serverType
+    minecraftVersion: minecraftVersion
     projectName: name
     serverStorageAccountName: storageServer.outputs.storageAccountServerName
     serverShareName: storageServer.outputs.storageAccountFileShareServerName
