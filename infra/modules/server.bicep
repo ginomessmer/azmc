@@ -131,7 +131,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
   name: containerGroupName
   location: location
   properties: {
-    imageRegistryCredentials: [
+    imageRegistryCredentials: empty(dockerHubUsername) ? [] : [
       {
         server: 'docker.io'
         username: dockerHubUsername
