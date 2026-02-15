@@ -47,6 +47,7 @@ public class BotBackgroundService : BackgroundService
         using (_logger.BeginScope("Login"))
         {
             _logger.LogInformation("Logging in...");
+            stoppingToken.ThrowIfCancellationRequested();
             await _interactionService.RestClient.LoginAsync(Discord.TokenType.Bot, _options.Value.Token);
             _logger.LogInformation("Logged in");
         }
@@ -54,6 +55,7 @@ public class BotBackgroundService : BackgroundService
         using (_logger.BeginScope("Module loader"))
         {
             _logger.LogInformation("Loading modules...");
+            stoppingToken.ThrowIfCancellationRequested();
             await _interactionService.AddModulesAsync(typeof(BotBackgroundService).Assembly, _serviceProvider);
             _logger.LogInformation("Loaded modules");
         }
@@ -61,6 +63,7 @@ public class BotBackgroundService : BackgroundService
         using (_logger.BeginScope("Command registration"))
         {
             _logger.LogInformation("Registering commands...");
+            stoppingToken.ThrowIfCancellationRequested();
 #if DEBUG
             await _interactionService.RegisterCommandsToGuildAsync(_options.Value.DebugGuildId);
 #else

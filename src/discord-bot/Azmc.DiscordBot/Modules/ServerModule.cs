@@ -43,6 +43,7 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
     }
 
     [SlashCommand("start", "Starts the Minecraft server")]
+    [RequireUserPermission(GuildPermission.ManageGuild)]
     public async Task StartAsync()
     {
         await DeferAsync();
@@ -55,6 +56,7 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
     }
 
     [SlashCommand("stop", "Stops the Minecraft server")]
+    [RequireUserPermission(GuildPermission.ManageGuild)]
     public async Task StopAsync()
     {
         await _containerGroupResource.StopAsync();

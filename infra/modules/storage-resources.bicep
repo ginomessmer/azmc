@@ -15,6 +15,7 @@ resource storageAccountResources 'Microsoft.Storage/storageAccounts@2023-01-01' 
   kind: 'StorageV2'
   properties: {
     minimumTlsVersion: 'TLS1_2'
+    // Public access is intentional — this account serves resource packs to players
     allowBlobPublicAccess: true
     supportsHttpsTrafficOnly: true
   }
