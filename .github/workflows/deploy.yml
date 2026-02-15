@@ -36,7 +36,7 @@ env:
     -p dockerHubUsername="${{ secrets.DOCKER_HUB_USER }}" \
     -p dockerHubPassword="${{ secrets.DOCKER_HUB_PAT }}" \
     ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} \
-    ${{ github.event.inputs.additional_params }} > whatif
+    ${{ github.event.inputs.additional_params }}
   DEPLOYMENT_NAME: ${{ github.run_id }}
 
 
@@ -61,7 +61,7 @@ jobs:
         with:
           inlineScript: |
             az deployment group what-if \
-              ${{ env.AZ_INLINE_SCRIPT_PARAMS }}
+              ${{ env.AZ_INLINE_SCRIPT_PARAMS }} > whatif
 
       - name: Job Summary
         if: ${{ github.event.inputs.skip_whatif == 'false' || github.event.inputs.environment == 'production' }}

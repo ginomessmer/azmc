@@ -27,5 +27,5 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 EXPOSE 8080
 COPY --from=publish /app/publish .
-HEALTHCHECK CMD curl --fail http://localhost:8080/health || exit
+HEALTHCHECK CMD dotnet --list-runtimes > /dev/null && wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 ENTRYPOINT ["./Azmc.DiscordBot"]

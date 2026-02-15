@@ -52,7 +52,7 @@ param resourcePackName string = ''
 var isResourcePackExternal = startsWith(resourcePackName, 'https://')
 
 // Auto shutdown
-@description('Automatically shut down the server at midnight.')
+@description('Automatically shut down the server at 3:00 AM (UTC).')
 param deployAutoShutdown bool = true
 
 
@@ -208,4 +208,4 @@ output minecraftServerContainerGroupName string = server.outputs.containerGroupN
 output minecraftServerFqdn string = server.outputs.containerGroupFqdn
 output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl) : null
 
-output webMapFqdn string = deployRenderer ? renderer.outputs.webMapFqdn : ''
+output webMapFqdn string? = deployRenderer ? renderer.outputs.webMapFqdn : null
