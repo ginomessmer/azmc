@@ -1,7 +1,7 @@
 param location string
 param projectName string
 
-param retentionInDays int = 90
+param retentionInDays int = 30
 
 var const = loadJsonContent('../const.json')
 

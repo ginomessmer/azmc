@@ -17,10 +17,11 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
     }
 
     [SlashCommand("status", "Gets the status of the Minecraft server")]
-    public Task StatusAsync()
+    public async Task StatusAsync()
     {
-        var state = _containerGroupResource.Data.Containers.First().InstanceView.CurrentState;
-        return RespondAsync(embed: new EmbedBuilder()
+        var fresh = await _containerGroupResource.GetAsync();
+        var state = fresh.Value.Data.Containers.First().InstanceView.CurrentState;
+        await RespondAsync(embed: new EmbedBuilder()
             .WithTitle("Server status")
             .WithFields(new EmbedFieldBuilder[]
             {

@@ -29,19 +29,35 @@ resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-p
   }
 }
 
-// Role assignment
-var ownerRoleDefinitionName = '8e3af657-a8ff-443c-a75c-2fe8c4bcb635'
-resource ownerRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-05-01-preview' existing = {
-  name: ownerRoleDefinitionName
+// Role assignments — Contributor + User Access Administrator in place of the broader Owner role
+var contributorRoleDefinitionId = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+var userAccessAdminRoleDefinitionId = '18d7d88d-d35e-4fb5-a5c3-7773c20a72d9'
+
+resource contributorRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-05-01-preview' existing = {
+  name: contributorRoleDefinitionId
 }
 
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(identity.id, ownerRoleDefinition.id)
+resource userAccessAdminRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-05-01-preview' existing = {
+  name: userAccessAdminRoleDefinitionId
+}
+
+resource contributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(identity.id, contributorRoleDefinition.id)
   scope: resourceGroup()
   properties: {
     principalId: identity.properties.principalId
     principalType: 'ServicePrincipal'
-    roleDefinitionId: ownerRoleDefinition.id
+    roleDefinitionId: contributorRoleDefinition.id
+  }
+}
+
+resource userAccessAdminRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(identity.id, userAccessAdminRoleDefinition.id)
+  scope: resourceGroup()
+  properties: {
+    principalId: identity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: userAccessAdminRoleDefinition.id
   }
 }
 
@@ -50,7 +66,8 @@ resource identityLock 'Microsoft.Authorization/locks@2020-05-01' = {
   name: 'identityLock'
   scope: identity
   dependsOn: [
-    roleAssignment
+    contributorRoleAssignment
+    userAccessAdminRoleAssignment
   ]
   properties: {
     level: 'ReadOnly'

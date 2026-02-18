@@ -81,23 +81,16 @@ app.MapPost("/interactions", async (DiscordRestClient client, InteractionService
             }
 
             app.Logger.LogInformation("Executing command");
-            // Stupid hack because it seems that the interaction 
-            // response callback won't be awaited when the command is executed
-            CancellationTokenSource cts = new();
-            cts.CancelAfter(TimeSpan.FromSeconds(3));
-            Microsoft.AspNetCore.Http.IResult result = Results.BadRequest("Could not complete command");
+            var tcs = new TaskCompletionSource<Microsoft.AspNetCore.Http.IResult>(TaskCreationOptions.RunContinuationsAsynchronously);
             await interactionService.ExecuteCommandAsync(new RestInteractionContext(client, interaction, json =>
             {
                 app.Logger.LogInformation("Command executed");
-                result = Results.Content(json, MediaTypeNames.Application.Json, System.Text.Encoding.UTF8, StatusCodes.Status200OK);
-                cts.Cancel();
+                tcs.TrySetResult(Results.Content(json, MediaTypeNames.Application.Json, System.Text.Encoding.UTF8, StatusCodes.Status200OK));
                 return Task.CompletedTask;
             }), services);
 
-            while (!cts.IsCancellationRequested)
-            {
-                await Task.Delay(100);
-            }
+            var result = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(3))
+                .ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : Results.BadRequest("Could not complete command"));
 
             app.Logger.LogInformation("Answered command");
 
