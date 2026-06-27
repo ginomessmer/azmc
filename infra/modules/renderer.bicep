@@ -85,6 +85,11 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
   identity: {
     type: 'SystemAssigned'
   }
+  dependsOn: [
+    containerEnvironment::mapWebStorage
+    containerEnvironment::blueMapStorage
+    containerEnvironment::caddyStorage
+  ]
   properties: {
     environmentId: containerEnvironment.id
     configuration: {
@@ -155,6 +160,10 @@ resource rendererContainerJob 'Microsoft.App/jobs@2023-08-01-preview' = {
 resource webMapContainerApp 'Microsoft.App/containerApps@2024-10-02-preview' = {
   name: webMapContainerAppName
   location: location
+  dependsOn: [
+    containerEnvironment::mapWebStorage
+    containerEnvironment::caddyStorage
+  ]
   properties: {
     environmentId: containerEnvironment.id
     configuration: {
