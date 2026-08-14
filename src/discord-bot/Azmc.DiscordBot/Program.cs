@@ -34,8 +34,7 @@ builder.Services
     {
         var client = services.GetRequiredService<ArmClient>();
         var options = services.GetRequiredService<IOptions<AzureOptions>>();
-        var resource = client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ContainerGroupResourceId)).Get();
-        return resource;
+        return client.GetContainerGroupResource(ResourceIdentifier.Parse(options.Value.ContainerGroupResourceId));
     });
 
 // Configuration
@@ -64,7 +63,7 @@ app.MapPost("/interactions", async (DiscordRestClient client, InteractionService
 
             req.EnableBuffering();
             req.Body.Position = 0;
-            var reader = new StreamReader(req.Body);
+            using var reader = new StreamReader(req.Body, leaveOpen: true);
             var body = await reader.ReadToEndAsync();
             var interaction = await client.ParseHttpInteractionAsync(
                 options.Value.PublicKey, signature, timestamp, body);
@@ -81,24 +80,18 @@ app.MapPost("/interactions", async (DiscordRestClient client, InteractionService
             }
 
             app.Logger.LogInformation("Executing command");
-            // Stupid hack because it seems that the interaction 
-            // response callback won't be awaited when the command is executed
-            CancellationTokenSource cts = new();
-            cts.CancelAfter(TimeSpan.FromSeconds(3));
-            Microsoft.AspNetCore.Http.IResult result = Results.BadRequest("Could not complete command");
+            var tcs = new TaskCompletionSource<Microsoft.AspNetCore.Http.IResult>();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+            cts.Token.Register(() => tcs.TrySetResult(Results.BadRequest("Could not complete command")));
+
             await interactionService.ExecuteCommandAsync(new RestInteractionContext(client, interaction, json =>
             {
                 app.Logger.LogInformation("Command executed");
-                result = Results.Content(json, MediaTypeNames.Application.Json, System.Text.Encoding.UTF8, StatusCodes.Status200OK);
-                cts.Cancel();
+                tcs.TrySetResult(Results.Content(json, MediaTypeNames.Application.Json, System.Text.Encoding.UTF8, StatusCodes.Status200OK));
                 return Task.CompletedTask;
             }), services);
 
-            while (!cts.IsCancellationRequested)
-            {
-                await Task.Delay(100);
-            }
-
+            var result = await tcs.Task;
             app.Logger.LogInformation("Answered command");
 
             return result;

@@ -17,10 +17,11 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
     }
 
     [SlashCommand("status", "Gets the status of the Minecraft server")]
-    public Task StatusAsync()
+    public async Task StatusAsync()
     {
-        var state = _containerGroupResource.Data.Containers.First().InstanceView.CurrentState;
-        return RespondAsync(embed: new EmbedBuilder()
+        var resource = await _containerGroupResource.GetAsync();
+        var state = resource.Value.Data.Containers.First().InstanceView.CurrentState;
+        await RespondAsync(embed: new EmbedBuilder()
             .WithTitle("Server status")
             .WithFields(new EmbedFieldBuilder[]
             {
@@ -42,6 +43,7 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
     }
 
     [SlashCommand("start", "Starts the Minecraft server")]
+    [RequireUserPermission(GuildPermission.ManageGuild)]
     public async Task StartAsync()
     {
         await DeferAsync();
@@ -54,6 +56,7 @@ public class ServerModule : RestInteractionModuleBase<RestInteractionContext>
     }
 
     [SlashCommand("stop", "Stops the Minecraft server")]
+    [RequireUserPermission(GuildPermission.ManageGuild)]
     public async Task StopAsync()
     {
         await _containerGroupResource.StopAsync();

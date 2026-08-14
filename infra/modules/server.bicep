@@ -47,52 +47,67 @@ var serverMountPath = '/data'
 var containerGroupName = 'ci-${projectName}-server'
 
 // Container settings
+var basePorts = [
+  {
+    // Minecraft
+    port: 25565
+    protocol: 'TCP'
+  }
+]
+
+var bedrockPorts = [
+  {
+    // Geyser
+    port: 19132
+    protocol: 'UDP'
+  }
+]
+
+var baseEnvVars = [
+  {
+    name: 'EULA'
+    value: acceptEula
+  }
+  {
+    name: 'TYPE'
+    value: serverType
+  }
+  {
+    name: 'VERSION'
+    value: minecraftVersion
+  }
+  {
+    name: 'ENABLE_AUTOSTOP'
+    value: isAutostopEnabled
+  }
+  {
+    name: 'MEMORY'
+    value: '${memorySize}G'
+  }
+]
+
+var resourcePackEnvVars = [
+  {
+    name: 'RESOURCE_PACK'
+    value: resourcePackUrl
+  }
+]
+
+var geyserDownloadVariant = serverType == 'FORGE' ? 'forge' : 'spigot'
+
+var bedrockEnvVars = [
+  {
+    name: 'PLUGINS'
+    value: 'https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/${geyserDownloadVariant}'
+  }
+]
+
 var minecraftContainer = {
   name: 'server'
   properties: {
     image: 'itzg/minecraft-server'
-    ports: [
-      {
-        // Minecraft
-        port: 25565
-        protocol: 'TCP'
-      }
-      isBedrockSupportEnabled ? {
-        // Geyser
-        port: 19132
-        protocol: 'UDP'
-      } : { }
-    ]
-    environmentVariables: [
-      {
-        name: 'EULA'
-        value: acceptEula
-      }
-      {
-        name: 'TYPE'
-        value: serverType
-      }
-      {
-        name: 'VERSION'
-        value: minecraftVersion
-      }
-      {
-        name: 'ENABLE_AUTOSTOP'
-        value: isAutostopEnabled
-      }
-      {
-        name: 'MEMORY'
-        value: '${memorySize}G'
-      }
-      {
-        name: 'RESOURCE_PACK'
-        value: resourcePackUrl != '' ? resourcePackUrl : ''
-      }
-      isBedrockSupportEnabled ? {
-        name: 'PLUGINS'
-        value: 'https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot'
-      } : { }
-    ]
+    ports: concat(basePorts, isBedrockSupportEnabled ? bedrockPorts : [])
+    environmentVariables: concat(baseEnvVars, !empty(resourcePackUrl) ? resourcePackEnvVars : [], isBedrockSupportEnabled ? bedrockEnvVars : [])
     volumeMounts: [
       {
         name: 'server'
@@ -131,7 +146,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
   name: containerGroupName
   location: location
   properties: {
-    imageRegistryCredentials: [
+    imageRegistryCredentials: empty(dockerHubUsername) ? [] : [
       {
         server: 'docker.io'
         username: dockerHubUsername
@@ -155,16 +170,17 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
     ipAddress: {
       type: 'Public'
       dnsNameLabel: projectName
-      ports: [
+      ports: concat([
         {
           protocol: 'TCP'
           port: 25565
         }
-        isBedrockSupportEnabled ? {
+      ], isBedrockSupportEnabled ? [
+        {
           protocol: 'UDP'
           port: 19132
-        } : { }
-      ]
+        }
+      ] : [])
     }
   }
 }
