@@ -44,8 +44,8 @@ env:
     -p discordBotToken="${{ secrets.DISCORD_BOT_TOKEN }}" \
     -p dockerHubUsername="${{ secrets.DOCKER_HUB_USER }}" \
     -p dockerHubPassword="${{ secrets.DOCKER_HUB_PAT }}" \
-    ${{ github.event.inputs.minecraft_version != '' && format('-p minecraftVersion="{0}"', github.event.inputs.minecraft_version) || '' }} \
     ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} \
+    ${{ github.event.inputs.minecraft_version != '' && format('-p minecraftVersion="{0}"', github.event.inputs.minecraft_version) || '' }} \
     ${{ github.event.inputs.additional_params }} > whatif
   DEPLOYMENT_NAME: ${{ github.run_id }}
 
