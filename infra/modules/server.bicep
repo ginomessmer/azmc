@@ -39,6 +39,9 @@ param dockerHubUsername string
 @secure()
 param dockerHubPassword string
 
+@description('The pinned Docker image tag of the Minecraft server. Optionally use "latest" to always use the latest version, but this is not recommended for prod environments.')
+param imageTag string = '2026.8.1'
+
 // Log Analytics settings
 param workspaceName string
 
@@ -50,7 +53,7 @@ var containerGroupName = 'ci-${projectName}-server'
 var minecraftContainer = {
   name: 'server'
   properties: {
-    image: 'itzg/minecraft-server'
+    image: 'itzg/minecraft-server:${imageTag}'
     ports: [
       {
         // Minecraft
