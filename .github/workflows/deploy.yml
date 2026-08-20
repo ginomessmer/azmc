@@ -100,6 +100,12 @@ jobs:
 
       - name: Job Summary
         run: |
+          MINECRAFT_VERSION=$(az deployment group show -n ${{ env.DEPLOYMENT_NAME }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.minecraftServerVersion.value -o tsv)
+          IMAGE_TAG=$(az deployment group show -n ${{ env.DEPLOYMENT_NAME }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.minecraftServerImageTag.value -o tsv)
+          echo "## Minecraft Server" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: \`$MINECRAFT_VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Image: \`itzg/minecraft-server:$IMAGE_TAG\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Deployment Output" >> $GITHUB_STEP_SUMMARY
           echo "<details><summary>Click to expand</summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
