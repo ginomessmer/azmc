@@ -1,13 +1,22 @@
 name: Deploy
 
+run-name: >-
+  Deploy ${{ inputs.minecraft_version != '' && inputs.minecraft_version || 'default version' }}
+  to ${{ inputs.environment }}
+
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
     inputs:
       environment:
         description: 'Environment to deploy to'
         required: true
         default: development
         type: environment
+      minecraft_version:
+        description: 'Minecraft version to deploy (leave empty to use the environment default)'
+        required: false
+        default: ''
+        type: string
       skip_whatif:
         description: 'Skip What If'
         required: false
@@ -36,6 +45,7 @@ env:
     -p dockerHubUsername="${{ secrets.DOCKER_HUB_USER }}" \
     -p dockerHubPassword="${{ secrets.DOCKER_HUB_PAT }}" \
     ${{ vars.AZ_DEPLOYMENT_INLINE_PARAMS }} \
+    ${{ github.event.inputs.minecraft_version != '' && format('-p minecraftVersion="{0}"', github.event.inputs.minecraft_version) || '' }} \
     ${{ github.event.inputs.additional_params }} > whatif
   DEPLOYMENT_NAME: ${{ github.run_id }}
 
@@ -100,6 +110,12 @@ jobs:
 
       - name: Job Summary
         run: |
+          MINECRAFT_VERSION=$(az deployment group show -n ${{ env.DEPLOYMENT_NAME }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.minecraftServerVersion.value -o tsv)
+          IMAGE_TAG=$(az deployment group show -n ${{ env.DEPLOYMENT_NAME }} -g ${{ secrets.AZURE_RG_NAME }} --query properties.outputs.minecraftServerImageTag.value -o tsv)
+          echo "## Minecraft Server" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: \`$MINECRAFT_VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Image: \`itzg/minecraft-server:$IMAGE_TAG\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Deployment Output" >> $GITHUB_STEP_SUMMARY
           echo "<details><summary>Click to expand</summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

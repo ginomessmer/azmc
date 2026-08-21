@@ -206,6 +206,8 @@ module dashboards 'dashboards/default.bicep' = if(deployDashboard) {
 
 output minecraftServerContainerGroupName string = server.outputs.containerGroupName
 output minecraftServerFqdn string = server.outputs.containerGroupFqdn
+output minecraftServerVersion string = server.outputs.minecraftVersion
+output minecraftServerImageTag string = server.outputs.imageTag
 output discordInteractionEndpoint string? = deployDiscordBot ? format('https://{0}/interactions', discordBot.outputs.containerAppUrl) : null
 
 output webMapFqdn string = deployRenderer ? renderer.outputs.webMapFqdn : ''
